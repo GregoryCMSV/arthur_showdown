@@ -37,7 +37,7 @@ namespace Arthur__Showdown_API.Controllers.Auth
                         HabilidadesDesbloqueadasIds = new List<int>()
                     };
 
-                    _db.ProgressosJogadores.Add(progresso);
+                    _db.ProgressoJogadores.Add(progresso);
                     await _db.SaveChangesAsync(); 
                 }
                 else

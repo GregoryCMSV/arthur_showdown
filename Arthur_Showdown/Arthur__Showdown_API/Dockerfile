@@ -13,6 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Arthur__Showdown_API/Arthur__Showdown_API.csproj", "Arthur__Showdown_API/"]
+COPY ["Arthur_Showdown_Database/Arthur_Showdown_Database.csproj", "Arthur_Showdown_Database/"]
 RUN dotnet restore "./Arthur__Showdown_API/Arthur__Showdown_API.csproj"
 COPY . .
 WORKDIR "/src/Arthur__Showdown_API"
