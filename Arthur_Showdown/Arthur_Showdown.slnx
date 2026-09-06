@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Bibliotecas/">
+    <Project Path="Arthur_Showdown_Database/Arthur_Showdown_Database.csproj" />
+    <Project Path="Arthur_Showdown_Shared/Arthur_Showdown_Shared.csproj" />
+  </Folder>
+  <Project Path="Arthur_Showdown_Game/Arthur_Showdown_Game.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+  <Project Path="Arthur__Showdown_API/Arthur__Showdown_API.csproj" />
+</Solution>
