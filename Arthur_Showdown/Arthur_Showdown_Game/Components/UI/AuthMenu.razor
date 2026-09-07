@@ -1,0 +1,20 @@
+﻿<div class="menu-box" @onclick:stopPropagation="true">
+    @if (IsModoLogin)
+    {
+        <h2>Login</h2>
+        <input @bind="Email" placeholder="E-mail" type="email" />
+        <input @bind="Senha" placeholder="Senha" type="password" />
+        <button @onclick="FazerLogin">Entrar</button>
+        <button class="btn-text" @onclick="() => IsModoLogin = false">Não tem conta? Criar</button>
+    }
+    else
+    {
+        <h2>Criar Conta</h2>
+        <input @bind="Nome" placeholder="Nome no Jogo" />
+        <input @bind="Email" placeholder="E-mail" type="email" />
+        <input @bind="Senha" placeholder="Senha" type="password" />
+        <button @onclick="FazerCadastro">Registrar</button>
+        <button class="btn-text" @onclick="() => IsModoLogin = true">Voltar</button>
+    }
+    <p class="error-msg">@MensagemErro</p>
+</div>

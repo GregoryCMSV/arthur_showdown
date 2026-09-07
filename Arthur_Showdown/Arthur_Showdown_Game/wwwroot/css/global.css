@@ -1,0 +1,63 @@
+﻿@font-face {
+    font-family: 'oldEnglish';
+    src: url('../fonts/OldeEnglish.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@keyframes piscar {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.blink {
+    animation: piscar 1.5s infinite;
+}
+
+.game-login-container {
+    height: 100vh;
+    background-color: #1a1a2e;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.menu-box {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    border: 2px solid #4a4e69;
+}
+
+input, button {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #f2e9e4;
+    color: #22223b;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+
+    button:hover {
+        background-color: #c9ada7;
+    }
