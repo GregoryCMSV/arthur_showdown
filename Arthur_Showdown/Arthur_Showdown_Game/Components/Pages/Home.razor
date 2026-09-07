@@ -1,5 +1,42 @@
 ﻿@page "/"
+@using System.Net.Http.Json
+@using Microsoft.Maui.Storage
+@inject HttpClient Http
 
-<h1>Hello, world!</h1>
+<Background ImagemUrl="@ImageService.ObterBackgroundLogin()" OnClick="TentarPassarDaTelaInicial">
 
-Welcome to your new app.
+    <div class="titulo-fixo">
+        <Label Tamanho="96px" Sombra="4px 4px 0px #000" EspacamentoLetras="2px">
+            Arthur Showdown
+        </Label>
+    </div>
+    <div class="conteudo-dinamico">
+        @if (EstadoAtual == GameState.PressAnyKey)
+        {
+
+            <Label Tamanho="40px" Cor="#cccccc" CssClass="blink" Margem="20px 0 0 0">
+                Clique em qualquer lugar para iniciar
+            </Label>
+        }
+        else if (EstadoAtual == GameState.Autenticacao)
+        {
+            <AuthMenu OnAutenticadoSucesso="IrParaMenuPrincipal" />
+        }
+        else if (EstadoAtual == GameState.MainMenu)
+        {
+            <div class="main-menu" @onclick:stopPropagation="true">
+                <button @onclick="ContinuarJogo">Continuar</button>
+                <button @onclick="NovoJogo">Novo Jogo</button>
+                <button @onclick="AbrirOpcoes">Opções</button>
+                <button class="btn-sair" @onclick="Sair">Sair</button>
+            </div>
+        }
+    </div>
+
+</Background>
+
+
+
+
+
+

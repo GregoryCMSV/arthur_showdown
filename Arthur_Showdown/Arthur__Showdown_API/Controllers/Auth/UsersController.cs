@@ -12,11 +12,13 @@ namespace Arthur__Showdown_API.Controllers.Auth
     {
         SupabaseAuthManager _authManager;
         ArthurShowdownContext _db;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(SupabaseAuthManager authManager, ArthurShowdownContext db)
+        public UsersController(SupabaseAuthManager authManager, ArthurShowdownContext db, ILogger<UsersController> logger)
         {
             _authManager = authManager;
             _db = db;
+            _logger = logger;
         }
 
         [HttpPost("registrar")]
@@ -24,10 +26,11 @@ namespace Arthur__Showdown_API.Controllers.Auth
         {
             try
             {
+                _logger.LogInformation($"Registrando usuário: {request.Email}, Tipo: {request.TipoUsuario}");
                 var session = await _authManager.RegistrarUsuario(request.Email, request.Senha, request.TipoUsuario, request.Nome);
                 if (session?.User != null)
                 {
-                    
+                    _logger.LogInformation($"Usuário registrado | ID: {session.User.Id}");
                     var progresso = new ProgressoJogador
                     {
                         JogadorId = Guid.Parse(session.User.Id),
@@ -42,12 +45,14 @@ namespace Arthur__Showdown_API.Controllers.Auth
                 }
                 else
                 {
+                    _logger.LogInformation($"Falha ao criar usuário no Supabase.");
                     return BadRequest("Falha ao criar usuário no Supabase.");
                 }
                 return Ok(session);
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError($"Erro ao registrar usuário: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -57,11 +62,14 @@ namespace Arthur__Showdown_API.Controllers.Auth
         {
             try
             {
+                _logger.LogInformation($"Fazendo login: {request.Email}");
                 var session = await _authManager.FazerLogin(request.Email, request.Senha);
                 if (session?.AccessToken == null) return Unauthorized("Credenciais inválidas.");
 
+                _logger.LogInformation($"Login bem-sucedido | ID: {session.User?.Id}");
                 return Ok(new { Token = session.AccessToken, UsuarioId = session.User?.Id });
             } catch (Exception ex) {
+                _logger.LogError($"Erro ao fazer login: {ex.Message}");
                 return Unauthorized("Erro ao fazer login: " + ex.Message);
             }
         }

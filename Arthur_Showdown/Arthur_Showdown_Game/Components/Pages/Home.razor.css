@@ -1,0 +1,32 @@
+﻿::deep .game-background {
+    position: relative;
+}
+
+.titulo-fixo {
+    position: absolute;
+    top: 15%;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+.conteudo-dinamico {
+    position: absolute;
+    top: 35%;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 5;
+}
+
+.main-menu {
+    margin-top: 10%;
+    width: 20%;
+    font-size: 48px;
+}
+
+    .main-menu button {
+        background-color: #22222200;
+        color: #fff;
+    }

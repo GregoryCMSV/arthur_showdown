@@ -1,0 +1,47 @@
+﻿.menu-box {
+    background: rgba(0, 0, 0, 0.85);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    border: 2px solid #4a4e69;
+    min-width: 300px;
+
+}
+
+input, button {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 24px;
+}
+
+button {
+    background-color: #f2e9e4;
+    color: #22223b;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+    button:hover {
+        background-color: #c9ada7;
+    }
+
+.btn-text {
+    background-color: transparent;
+    color: white;
+    margin-bottom: 0;
+}
+
+    .btn-text:hover {
+        background-color: transparent;
+        text-decoration: underline;
+    }
+
+.error-msg {
+    color: #ff4d4d;
+    margin-top: 10px;
+    min-height: 20px;
+}
