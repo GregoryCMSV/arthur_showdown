@@ -21,7 +21,7 @@
 }
 
 .main-menu {
-    margin-top: 10%;
+    margin-top: 5%;
     width: 20%;
     font-size: 48px;
 }
@@ -29,4 +29,32 @@
     .main-menu button {
         background-color: #22222200;
         color: #fff;
+        margin-bottom: 0px;
     }
+
+.aviso {
+    padding: 0 10%;
+    width: 80%;
+    text-align: center;
+    justify-content: center;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+    .aviso button {
+        margin-left: 25%;
+        margin-top: 5%;
+        width: 50%;
+    }
+
+    
+
+.btn-sim {
+    background-color: #d62828;
+    color: white;
+    font-size: 30px;
+}
+.btn-nao{
+    background-color: #222222;
+    color: white;
+    font-size: 30px;
+}

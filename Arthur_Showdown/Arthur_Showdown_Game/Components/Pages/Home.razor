@@ -24,12 +24,30 @@
         }
         else if (EstadoAtual == GameState.MainMenu)
         {
-            <div class="main-menu" @onclick:stopPropagation="true">
-                <button @onclick="ContinuarJogo">Continuar</button>
-                <button @onclick="NovoJogo">Novo Jogo</button>
-                <button @onclick="AbrirOpcoes">Opções</button>
-                <button class="btn-sair" @onclick="Sair">Sair</button>
-            </div>
+            @if (MostrarAvisoNovoJogo)
+            {
+                <div class="aviso">
+                    <Label Tamanho="60px" Cor="#ff4d4d">Atenção!</Label>
+                    <Label Tamanho="40px" Cor="#ffffff">
+                        Você tem um jogo em andamento. Iniciar um novo jogo apagará seu progresso atual. Deseja continuar?
+                    </Label>
+                    <button class="btn-sim" @onclick="ConfirmarSobrescreverJogo">Sim</button>
+                    <button class="btn-nao" @onclick="() => MostrarAvisoNovoJogo = false">Não</button>
+                </div>
+            }
+            else
+            {
+                <div class="main-menu" @onclick:stopPropagation="true">
+                    @if (TemJogoAtivo)
+                    {
+                        <button @onclick="ContinuarJogo">Continuar</button>
+                    }
+
+                    <button @onclick="ClicouNovoJogo">Novo Jogo</button>
+                    <button @onclick="AbrirOpcoes">Opções</button>
+                    <button class="btn-sair" @onclick="Sair">Sair</button>
+                </div>
+            }
         }
     </div>
 
