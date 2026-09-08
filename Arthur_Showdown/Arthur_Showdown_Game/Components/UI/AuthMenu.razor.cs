@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Arthur_Showdown_Shared.Dtos.Usuario;
+using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
@@ -24,7 +25,7 @@ namespace Arthur_Showdown_Game.Components.UI
 
             if (resposta.IsSuccessStatusCode)
             {
-                var dados = await resposta.Content.ReadFromJsonAsync<AuthResponse>();
+                var dados = await resposta.Content.ReadFromJsonAsync<LoginResponse>();
                 await SecureStorage.Default.SetAsync("auth_token", dados.Token);
                 MensagemErro = "";
                 await OnAutenticadoSucesso.InvokeAsync();
@@ -38,14 +39,11 @@ namespace Arthur_Showdown_Game.Components.UI
         private async Task FazerCadastro()
         {
             MensagemErro = "Criando conta...";
-            var resposta = await Http.PostAsJsonAsync("/api/users/registrar", new { Nome, Email, Senha, Tipo = "Jogador" });
-
+            var resposta = await Http.PostAsJsonAsync("/api/users/registrar", new UserRegistrationRequest { Nome = Nome, Email = Email,  Senha = Senha, TipoUsuario = "Jogador" });
+            var content = await resposta.Content.ReadAsStringAsync();
             if (resposta.IsSuccessStatusCode)
             {
-                var dados = await resposta.Content.ReadFromJsonAsync<AuthResponse>();
-                await SecureStorage.Default.SetAsync("auth_token", dados.Token);
-                MensagemErro = "";
-                await OnAutenticadoSucesso.InvokeAsync();
+                FazerLogin();
             }
             else
             {
@@ -53,6 +51,6 @@ namespace Arthur_Showdown_Game.Components.UI
             }
         }
 
-        public class AuthResponse { public string Token { get; set; } }
+       
     }
 }
