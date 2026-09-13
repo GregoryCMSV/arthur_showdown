@@ -14,5 +14,7 @@ namespace Arthur_Showdown_Database.Models.Base
         public int TipoPersonagemId { get; set; }
 
         public TipoPersonagem? TipoPersonagem { get; set; }
+
+        public string? ImagemUrl { get; set; }
     }
 }

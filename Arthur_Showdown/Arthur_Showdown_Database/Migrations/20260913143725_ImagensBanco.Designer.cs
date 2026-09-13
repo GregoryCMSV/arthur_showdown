@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Arthur_Showdown_Database.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Arthur_Showdown_Database.Migrations
 {
     [DbContext(typeof(ArthurShowdownContext))]
-    partial class ArthurShowdownContextModelSnapshot : ModelSnapshot
+    [Migration("20260913143725_ImagensBanco")]
+    partial class ImagensBanco
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,21 +45,6 @@ namespace Arthur_Showdown_Database.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Efeitos");
-                });
-
-            modelBuilder.Entity("Arthur_Showdown_Database.Models.Auxiliar.PersonagemAtaque", b =>
-                {
-                    b.Property<int>("PersonagemId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AtaqueId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("PersonagemId", "AtaqueId");
-
-                    b.HasIndex("AtaqueId");
-
-                    b.ToTable("PersonagemAtaques");
                 });
 
             modelBuilder.Entity("Arthur_Showdown_Database.Models.Auxiliar.Sessao", b =>
@@ -571,25 +559,6 @@ namespace Arthur_Showdown_Database.Migrations
                     b.HasIndex("GameId");
 
                     b.ToTable("WavesAtuais");
-                });
-
-            modelBuilder.Entity("Arthur_Showdown_Database.Models.Auxiliar.PersonagemAtaque", b =>
-                {
-                    b.HasOne("Arthur_Showdown_Database.Models.Base.Ataque", "Ataque")
-                        .WithMany()
-                        .HasForeignKey("AtaqueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Arthur_Showdown_Database.Models.Base.Personagem", "Personagem")
-                        .WithMany()
-                        .HasForeignKey("PersonagemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ataque");
-
-                    b.Navigation("Personagem");
                 });
 
             modelBuilder.Entity("Arthur_Showdown_Database.Models.Auxiliar.Sessao", b =>

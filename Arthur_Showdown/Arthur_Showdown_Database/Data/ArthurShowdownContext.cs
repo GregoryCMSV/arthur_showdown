@@ -28,6 +28,7 @@ namespace Arthur_Showdown_Database.Data
         public DbSet<StatusRun> StatusRuns { get; set; }
         public DbSet<Sessao> Sessoes { get; set; }
         public DbSet<Wave> Waves { get; set; }
+        public DbSet<PersonagemAtaque> PersonagemAtaques { get; set; }
 
         // Run
         public DbSet<Game> Games { get; set; }
@@ -42,6 +43,19 @@ namespace Arthur_Showdown_Database.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<PersonagemAtaque>()
+            .HasKey(pa => new { pa.PersonagemId, pa.AtaqueId });
+
+            modelBuilder.Entity<PersonagemAtaque>()
+            .HasOne(pa => pa.Personagem)
+            .WithMany() 
+            .HasForeignKey(pa => pa.PersonagemId);
+
+            modelBuilder.Entity<PersonagemAtaque>()
+                .HasOne(pa => pa.Ataque)
+                .WithMany()
+                .HasForeignKey(pa => pa.AtaqueId);
 
             modelBuilder.Entity<Personagem>()
                 .HasOne(p => p.TipoPersonagem)

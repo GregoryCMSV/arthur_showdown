@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Arthur_Showdown_Database.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Arthur_Showdown_Database.Migrations
 {
     [DbContext(typeof(ArthurShowdownContext))]
-    partial class ArthurShowdownContextModelSnapshot : ModelSnapshot
+    [Migration("20260913200013_VincularPersonagemAtaque")]
+    partial class VincularPersonagemAtaque
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

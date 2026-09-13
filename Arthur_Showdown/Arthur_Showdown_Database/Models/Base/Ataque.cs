@@ -16,6 +16,7 @@ public class Ataque
     public int? EfeitoId { get; set; }
     public Efeito? Efeito { get; set; }
     public HitboxConfig Hitbox { get; set; } = new();
+    public string? ImagemUrl { get; set; }
 }
 public class HitboxConfig
 {
