@@ -13,5 +13,6 @@ namespace Arthur_Showdown_Database.Models.Base
         public int? ChefeId { get; set; }
         public Personagem? Chefe { get; set; }
         public List<int> InimigosPossiveisIds { get; set; } = new();
+        public string? ImagemUrl { get; set; }
     }
 }

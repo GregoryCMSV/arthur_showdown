@@ -10,5 +10,6 @@ namespace Arthur_Showdown_Database.Models.Base
         public string Nome { get; set; } = string.Empty;
         public string Descricao { get; set; } = string.Empty;
         public int CustoCompra { get; set; }
+        public string? ImagemUrl { get; set; }
     }
 }
