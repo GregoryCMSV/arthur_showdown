@@ -1,0 +1,58 @@
+﻿::deep .map-modal {
+    width: 70vw;
+    height: 45vh;
+    background-color: #d4b483 !important;
+    border: 6px solid #8b5a2b !important;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.map-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    height: 100px;
+    position: relative;
+    margin-top: 20px;
+}
+
+.map-node {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 3px solid #4a2e1b;
+    z-index: 2;
+}
+
+.node-start {
+    background-color: #8da173;
+}
+
+.node-combat {
+    background-color: #a72626;
+    cursor: pointer;
+}
+
+.node-player-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    transform: translateY(-15px);
+}
+
+.map-path {
+    flex-grow: 1;
+    height: 4px;
+    background-image: linear-gradient(to right, #4a2e1b 50%, transparent 50%);
+    background-size: 15px 4px;
+    background-repeat: repeat-x;
+    z-index: 1;
+}

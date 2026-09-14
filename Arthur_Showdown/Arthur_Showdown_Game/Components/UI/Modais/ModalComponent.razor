@@ -1,0 +1,19 @@
+﻿<div class="overlay-menu">
+    <div class="modal-base @CssClass">
+        @if (!string.IsNullOrEmpty(Titulo))
+        {
+            <Label Tamanho="32px" Cor="#ffd166">@Titulo</Label>
+        }
+
+        <div class="modal-content">
+            @ChildContent
+        </div>
+
+        @if (MostrarDicaFechar)
+        {
+            <Label Tamanho="14px" Cor="gray" Margem="40px 0 0 0">
+                Saia do tile para fechar
+            </Label>
+        }
+    </div>
+</div>
