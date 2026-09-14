@@ -1,0 +1,60 @@
+﻿.tile {
+    width: 10vw;
+    height: 35px;
+    background-color: #4a4e69;
+    border-radius: 4px;
+    border-top: 5px solid #9a8c98;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #22223b;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.tile-special {
+    background-color: #ffd166;
+    border-top-color: #ffe066;
+}
+
+.tile-danger {
+    animation: piscar-vermelho 1s infinite;
+}
+
+.tile-shake {
+    animation: sacudir 0.2s ease-in-out;
+}
+
+@keyframes piscar-vermelho {
+    0%, 100% {
+        background-color: #4a4e69;
+        border-top-color: #9a8c98;
+    }
+
+    50% {
+        background-color: #ef233c;
+        border-top-color: #d90429;
+    }
+}
+
+@keyframes sacudir {
+    0% {
+        transform: translateY(0);
+    }
+
+    25% {
+        transform: translateY(5px);
+    }
+
+    50% {
+        transform: translateY(-2px);
+    }
+
+    75% {
+        transform: translateY(2px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
