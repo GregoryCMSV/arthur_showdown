@@ -15,9 +15,10 @@ public partial class Home : ComponentBase
     private GameState EstadoAtual = GameState.PressAnyKey;
     private bool TemJogoAtivo = false;
     private bool MostrarAvisoNovoJogo = false;
+    string jogoAtivoId = "";
 
-    [Inject]
-    private ImageService ImageService { get; set; }
+    [Inject] private ImageService ImageService { get; set; }
+    [Inject] private NavigationManager NavManager { get; set; }
 
 
     protected override async Task OnInitializedAsync()
@@ -27,14 +28,24 @@ public partial class Home : ComponentBase
         {
             Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             await VerificarProgresso();
-            EstadoAtual = GameState.MainMenu;
         }
     }
 
-    private void TentarPassarDaTelaInicial()
+    private async Task TentarPassarDaTelaInicial()
     {
         if (EstadoAtual == GameState.PressAnyKey)
-            EstadoAtual = GameState.Autenticacao;
+        {
+            var token = await SecureStorage.Default.GetAsync("auth_token");
+            if (!string.IsNullOrEmpty(token))
+            {
+                EstadoAtual = GameState.MainMenu;
+            }
+            else
+            {
+                EstadoAtual = GameState.Autenticacao;
+            }
+        }
+           
     }
 
     private async Task IrParaMenuPrincipal()
@@ -56,6 +67,7 @@ public partial class Home : ComponentBase
             if (resposta.IsSuccessStatusCode)
             {
                 var currentGame = await resposta.Content.ReadFromJsonAsync<CurrentGameResponse>();
+                jogoAtivoId = currentGame.GameID?.ToString() ?? "";
                 TemJogoAtivo = currentGame.GameID.HasValue;
             }
         }
@@ -77,8 +89,12 @@ public partial class Home : ComponentBase
         NovoJogo();
     }
 
-    private void ContinuarJogo() { }
-    private void NovoJogo() { }
+    private void ContinuarJogo() {
+        NavManager.NavigateTo($"/game/{jogoAtivoId}");
+    }
+    private void NovoJogo() {
+        NavManager.NavigateTo("/game");
+    }
     private void AbrirOpcoes() { }
 
     private void Sair()

@@ -1,0 +1,39 @@
+﻿@page "/game"
+@page "/game/{GameId:int}"
+
+
+<Background ImagemUrl="@(IsLobby ? "" : "url-do-fundo-batalha")">
+    <div class="gameplay-container" tabindex="0" @onkeydown="Controle.ProcessarTeclado" autofocus>
+        <Arena IsLobby="IsLobby" 
+               QuantidadeTiles="5"
+               TileTremendoId="TileTremendoId"
+               PosicaoPersonagem="PosicaoPersonagem"
+               EstaEmMovimento="EstaEmMovimento"
+               PersonagemAtual="PersonagemAtual" />
+        @if (IsLobby)
+        {
+            <Lobby OnStartClicked="AbrirMapa" />
+        }
+
+        <div class="hud-bottom">
+            @if (PersonagemAtual != null)
+            {
+                <AtaquesContainer Personagem="PersonagemAtual" />
+            }
+        </div>
+
+        @if (JanelaAberta == "Mapa")
+        {
+            <MapModal PersonagemAtual="PersonagemAtual" />
+        }
+        else if (JanelaAberta == "Loja")
+        {
+            <ShopModal />
+        }
+        else if (JanelaAberta == "Scoreboard")
+        {
+            <ScoreboardModal />
+        }
+
+    </div>
+</Background>

@@ -1,0 +1,14 @@
+﻿<div class="battle-arena">
+    @for (int i = 0; i < QuantidadeTiles; i++)
+    {
+        <Tile Indice="i"
+              IsEspecial="IsLobby && (i == 0 || i == 1 || i == 4)"
+              IsPerigo="i == 3"
+              IsTremendo="i == TileTremendoId" />
+    }
+
+    <Player PosicaoAtual="@PosicaoPersonagem"
+            IsMovendo="@EstaEmMovimento"
+            CategoriaPeso="1"
+            Personagem="PersonagemAtual" />
+</div>

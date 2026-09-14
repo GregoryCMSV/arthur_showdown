@@ -1,0 +1,6 @@
+﻿.battle-arena {
+    display: flex;
+    gap: 1.2vw;
+    position: relative;
+    margin-top: 20%;
+}
