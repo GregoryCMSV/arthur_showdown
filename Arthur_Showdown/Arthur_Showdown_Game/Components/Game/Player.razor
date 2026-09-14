@@ -1,0 +1,8 @@
+﻿<div class="personagem-base" style="transform: translateX(calc(@PosicaoAtual * 11vw));">
+    <div class="personagem-visual @ClasseAnimacao">
+        @if (Personagem != null && !string.IsNullOrEmpty(Personagem.ImagemUrl))
+        {
+            <img src="@Personagem.ImagemUrl" alt="@Personagem.Nome" style="width: 100%; height: 100%; object-fit: contain;" />
+        }
+    </div>
+</div>

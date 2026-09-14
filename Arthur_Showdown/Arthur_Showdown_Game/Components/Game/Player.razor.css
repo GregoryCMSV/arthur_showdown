@@ -1,0 +1,53 @@
+﻿.personagem-base {
+    position: absolute;
+    bottom: 25px;
+    width: 8vw;
+    height: 12vw;
+    margin-left: 1vw;
+    transition: transform 0.15s linear;
+    z-index: 10;
+}
+
+.personagem-visual {
+    width: 100%;
+    height: 100%;
+    background-color: #0dcaf0;
+    background-color: transparent;
+    border-radius: 8px;
+}
+
+    .personagem-visual img {
+        image-rendering: pixelated; 
+    }
+
+.pulo-leve {
+    animation: arcoY 0.15s ease-in-out;
+}
+
+.pulo-normal {
+    animation: arcoY 0.15s ease-in-out;
+}
+
+.pulo-pesado {
+    animation: arcoY-pesado 0.15s ease-in-out;
+}
+
+@keyframes arcoY {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-50px);
+    }
+}
+
+@keyframes arcoY-pesado {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
