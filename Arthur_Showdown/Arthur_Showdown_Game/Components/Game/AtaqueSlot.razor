@@ -1,0 +1,15 @@
+﻿<div class="ataque-slot @(Ataque.IsFastAction ? "fast-action" : "")">
+    <div class="slot-numero">@Numero</div>
+    <div class="slot-imagem">
+        @if (!string.IsNullOrEmpty(Ataque.ImagemUrl))
+        {
+            <img src="@Ataque.ImagemUrl" alt="@Ataque.Nome" />
+        }
+    </div>
+    <div class="slot-cooldowns">
+        @for (int i = 0; i < Ataque.Cooldown; i++)
+        {
+            <div class="cooldown-block"></div>
+        }
+    </div>
+</div>

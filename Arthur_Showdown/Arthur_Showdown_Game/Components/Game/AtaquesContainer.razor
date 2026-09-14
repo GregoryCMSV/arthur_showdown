@@ -1,0 +1,9 @@
+﻿<div class="ataques-container">
+    @if (Personagem != null && Personagem.AtaquesIniciais.Any())
+    {
+        @for (int i = 0; i < Personagem.AtaquesIniciais.Count; i++)
+        {
+            <AtaqueSlot Ataque="Personagem.AtaquesIniciais[i]" Numero="Personagem.AtaquesIniciais[i].Dano" />
+        }
+    }
+</div>
