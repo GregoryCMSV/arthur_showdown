@@ -1,4 +1,5 @@
 ﻿using Arthur_Showdown_Database.Models.Auxiliar;
+using Arthur_Showdown_Shared.Dtos.Game;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,25 +19,5 @@ public class Ataque
     public HitboxConfig Hitbox { get; set; } = new();
     public string? ImagemUrl { get; set; }
 }
-public class HitboxConfig
-{
-    public HitboxOrigem Origem { get; set; } = HitboxOrigem.Caster;
-    public HitboxDirecao Direcao { get; set; } = HitboxDirecao.Forward;
-    public int AlcanceMin { get; set; } = 1;
-    public int AlcanceMax { get; set; } = 1;
-}
 
-public enum HitboxOrigem
-{
-    Caster,     
-    EdgeFront,  
-    EdgeBack    
-}
-
-public enum HitboxDirecao
-{
-    Forward,    
-    Backward,   
-    Both        
-}
 

@@ -1,0 +1,13 @@
+﻿@if (_currentCharacter != null)
+{
+    <div class="personagem-base" style="transform: translateX(calc(@_currentCharacter.PosicaoPersonagem * 11.2vw));">
+        <div class="personagem-animacao @ClasseAnimacao">
+            <div class="personagem-visual @ClasseGiro" style="transform: scaleX(@_currentCharacter.DirecaoOlhar);">
+                @if (_currentCharacter.Personagem != null && !string.IsNullOrEmpty(_currentCharacter.Personagem.ImagemUrl))
+                {
+                    <img src="@_currentCharacter.Personagem.ImagemUrl" alt="@_currentCharacter.Personagem.Nome" style="width: 100%; height: 100%; object-fit: contain;" />
+                }
+            </div>
+        </div>
+    </div>
+}

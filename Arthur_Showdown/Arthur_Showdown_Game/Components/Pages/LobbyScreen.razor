@@ -1,0 +1,38 @@
+﻿@page "/lobby"
+
+<Scene ImagemUrl="@_ImgService.ObterBackgroundLobby()">
+
+    <GameLayer>
+        <div class="gameplay-container" tabindex="0" @ref="GameplayContainer" autofocus>
+            <Arena IsLobby=@true
+                   QuantidadeTiles="5"
+                   TileTremendoId="TileTremendoId"
+                   />
+        </div>
+    </GameLayer>
+
+    <UILayer>
+        <MapButton OnStartClicked="AbrirMapa" />
+
+        <div class="hud-bottom">
+            @if (_PlayerService.CurrentCharacter != null)
+            {
+                <AtaquesContainer/>
+            }
+        </div>
+
+        @if (JanelaAberta == ModalAberto.Mapa)
+        {
+            <MapModal OnClose="FecharModal" />
+        }
+        else if (JanelaAberta == ModalAberto.Loja)
+        {
+            <ShopModal OnClose="FecharModal" />
+        }
+        else if (JanelaAberta == ModalAberto.Scoreboard)
+        {
+            <ScoreboardModal OnClose="FecharModal" />
+        }
+    </UILayer>
+
+</Scene>

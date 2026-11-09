@@ -13,53 +13,43 @@ public partial class Home : ComponentBase
 {
     private enum GameState { PressAnyKey, Autenticacao, MainMenu }
     private GameState EstadoAtual = GameState.PressAnyKey;
-    private bool TemJogoAtivo = false;
     private bool MostrarAvisoNovoJogo = false;
+    private string? jogoAtivoId = "";
 
-    [Inject]
-    private ImageService ImageService { get; set; }
-
+    [Inject] private ImageService ImgService { get; set; }
+    [Inject] private HTTPService HttpService { get; set; }
+    [Inject] private NavigationService NavService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var token = await SecureStorage.Default.GetAsync("auth_token");
-        if (!string.IsNullOrEmpty(token))
-        {
-            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            await VerificarProgresso();
-            EstadoAtual = GameState.MainMenu;
-        }
+        await VerificarProgresso();
     }
 
-    private void TentarPassarDaTelaInicial()
+    private async Task TentarPassarDaTelaInicial()
     {
         if (EstadoAtual == GameState.PressAnyKey)
-            EstadoAtual = GameState.Autenticacao;
+        {
+            var token = await SecureStorage.Default.GetAsync("auth_token");
+            if (!string.IsNullOrEmpty(token))
+            {
+                EstadoAtual = GameState.MainMenu;
+            }
+            else
+            {
+                EstadoAtual = GameState.Autenticacao;
+            }
+        }
     }
 
     private async Task IrParaMenuPrincipal()
     {
-        var token = await SecureStorage.Default.GetAsync("auth_token");
-        if (!string.IsNullOrEmpty(token))
-        {
-            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            await VerificarProgresso();
-        }
+        await VerificarProgresso();
         EstadoAtual = GameState.MainMenu;
     }
 
     private async Task VerificarProgresso()
     {
-        try
-        {
-          var resposta = await Http.GetAsync("/api/game/current");
-            if (resposta.IsSuccessStatusCode)
-            {
-                var currentGame = await resposta.Content.ReadFromJsonAsync<CurrentGameResponse>();
-                TemJogoAtivo = currentGame.GameID.HasValue;
-            }
-        }
-        catch { TemJogoAtivo = false; }
+        jogoAtivoId = await HttpService.GetCurrentGame();
     }
 
     private void ClicouNovoJogo()
@@ -73,20 +63,28 @@ public partial class Home : ComponentBase
     private async Task ConfirmarSobrescreverJogo()
     {
         MostrarAvisoNovoJogo = false;
-        await Http.PostAsync("/api/game/abandon", null);
+        await HttpService.AbadonGame();
         NovoJogo();
     }
 
-    private void ContinuarJogo() { }
-    private void NovoJogo() { }
+    private void ContinuarJogo()
+    {
+        NavService.GoToGame(jogoAtivoId);
+    }
+    private void NovoJogo()
+    {
+        NavService.GoToLobby();
+    }
     private void AbrirOpcoes() { }
 
     private void Sair()
     {
         SecureStorage.Default.Remove("auth_token");
         EstadoAtual = GameState.Autenticacao;
-        TemJogoAtivo = false;
+        jogoAtivoId = null;
         MostrarAvisoNovoJogo = false;
     }
+
+    private bool TemJogoAtivo => !string.IsNullOrEmpty(jogoAtivoId);
 
 }

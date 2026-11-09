@@ -1,57 +1,52 @@
 ﻿@page "/"
-@using System.Net.Http.Json
-@using Microsoft.Maui.Storage
-@inject HttpClient Http
 
-<Background ImagemUrl="@ImageService.ObterBackgroundLogin()" OnClick="TentarPassarDaTelaInicial">
-
-    <div class="titulo-fixo">
-        <Label Tamanho="96px" Sombra="4px 4px 0px #000" EspacamentoLetras="2px">
-            Arthur Showdown
-        </Label>
-    </div>
-    <div class="conteudo-dinamico">
-        @if (EstadoAtual == GameState.PressAnyKey)
-        {
-
-            <Label Tamanho="40px" Cor="#cccccc" CssClass="blink" Margem="20px 0 0 0">
-                Clique em qualquer lugar para iniciar
+<Scene ImagemUrl="@ImgService.ObterBackgroundLogin()" OnClick="TentarPassarDaTelaInicial">
+    <UILayer>
+        <div class="titulo-fixo">
+            <Label Tamanho="96px" Sombra="4px 4px 0px #000" EspacamentoLetras="2px">
+                Arthur Showdown
             </Label>
-        }
-        else if (EstadoAtual == GameState.Autenticacao)
-        {
-            <AuthMenu OnAutenticadoSucesso="IrParaMenuPrincipal" />
-        }
-        else if (EstadoAtual == GameState.MainMenu)
-        {
-            @if (MostrarAvisoNovoJogo)
+        </div>
+        <div class="conteudo-dinamico">
+            @if (EstadoAtual == GameState.PressAnyKey)
             {
-                <div class="aviso">
-                    <Label Tamanho="60px" Cor="#ff4d4d">Atenção!</Label>
-                    <Label Tamanho="40px" Cor="#ffffff">
-                        Você tem um jogo em andamento. Iniciar um novo jogo apagará seu progresso atual. Deseja continuar?
-                    </Label>
-                    <button class="btn-sim" @onclick="ConfirmarSobrescreverJogo">Sim</button>
-                    <button class="btn-nao" @onclick="() => MostrarAvisoNovoJogo = false">Não</button>
-                </div>
+                <Label Tamanho="40px" Cor="#cccccc" CssClass="blink" Margem="20px 0 0 0">
+                    Clique em qualquer lugar para iniciar
+                </Label>
             }
-            else
+            else if (EstadoAtual == GameState.Autenticacao)
             {
-                <div class="main-menu" @onclick:stopPropagation="true">
-                    @if (TemJogoAtivo)
-                    {
-                        <button @onclick="ContinuarJogo">Continuar</button>
-                    }
-
-                    <button @onclick="ClicouNovoJogo">Novo Jogo</button>
-                    <button @onclick="AbrirOpcoes">Opções</button>
-                    <button class="btn-sair" @onclick="Sair">Sair</button>
-                </div>
+                <AuthMenu OnAutenticadoSucesso="IrParaMenuPrincipal" />
             }
-        }
-    </div>
-
-</Background>
+            else if (EstadoAtual == GameState.MainMenu)
+            {
+                @if (MostrarAvisoNovoJogo)
+                {
+                    <div class="aviso">
+                        <Label Tamanho="60px" Cor="#ff4d4d">Atenção!</Label>
+                        <Label Tamanho="40px" Cor="#ffffff">
+                            Você tem um jogo em andamento. Iniciar um novo jogo apagará seu progresso atual. Deseja continuar?
+                        </Label>
+                        <button class="btn-sim" @onclick="ConfirmarSobrescreverJogo">Sim</button>
+                        <button class="btn-nao" @onclick="() => MostrarAvisoNovoJogo = false">Não</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="main-menu" @onclick:stopPropagation="true">
+                        @if (TemJogoAtivo)
+                        {
+                            <button @onclick="ContinuarJogo">Continuar</button>
+                        }
+                        <button @onclick="ClicouNovoJogo">Novo Jogo</button>
+                        <button @onclick="AbrirOpcoes">Opções</button>
+                        <button class="btn-sair" @onclick="Sair">Sair</button>
+                    </div>
+                }
+            }
+        </div>
+    </UILayer>
+</Scene>
 
 
 

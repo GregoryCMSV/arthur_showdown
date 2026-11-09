@@ -1,0 +1,25 @@
+﻿.lobby-controls {
+    position: absolute;
+    right: 5vw; 
+    top: 50%;
+    transform: translateY(-50%); 
+    z-index: 20;
+}
+
+.btn-iniciar-mapa {
+    background-color: #ef233c;
+    color: white;
+    border: 3px solid #8d0801;
+    padding: 15px 25px;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    image-rendering: pixelated;
+    font-family: inherit;
+    transition: background-color 0.2s ease-in-out;
+}
+
+    .btn-iniciar-mapa:hover {
+        background-color: #d90429;
+    }

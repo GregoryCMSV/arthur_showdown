@@ -35,7 +35,7 @@ namespace Arthur__Showdown_API.Controllers.Auth
                     {
                         JogadorId = Guid.Parse(session.User.Id),
                         EmblemasKamelot = 0,
-                        PersonagensDesbloqueadosIds = new List<int> { 0 },
+                        PersonagensDesbloqueadosIds = new List<int> { 1 },
                         AtaquesDesbloqueadosIds = new List<int>(),
                         HabilidadesDesbloqueadasIds = new List<int>()
                     };

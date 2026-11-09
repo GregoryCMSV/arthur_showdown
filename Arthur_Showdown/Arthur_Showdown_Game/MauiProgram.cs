@@ -1,4 +1,4 @@
-﻿using Arthur_Showdown_Game.Services;
+using Arthur_Showdown_Game.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Arthur_Showdown_Game
@@ -17,6 +17,13 @@ namespace Arthur_Showdown_Game
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://arthur-showdown-api.onrender.com") });
             builder.Services.AddSingleton<ImageService>();
+            builder.Services.AddSingleton<HTTPService>();
+            builder.Services.AddScoped<NavigationService>();
+            builder.Services.AddScoped<InputManager>();
+            builder.Services.AddScoped<PlayerService>();
+            builder.Services.AddScoped<EnemiesService>();
+            builder.Services.AddScoped<LoadingService>();
+            builder.Services.AddScoped<TurnManager>();
             builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG

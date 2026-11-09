@@ -1,0 +1,99 @@
+﻿.personagem-base {
+    position: absolute;
+    bottom: 25px;
+    width: 8vw;
+    height: 12vw;
+    margin-left: 1vw;
+    transition: transform 0.15s linear;
+    z-index: 10;
+}
+
+.personagem-visual {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    border-radius: 8px;
+}
+
+    .personagem-visual img {
+        image-rendering: pixelated; 
+    }
+
+.virando-esquerda {
+    animation: virar-esq 0.15s linear;
+}
+
+.virando-direita {
+    animation: virar-dir 0.15s linear;
+}
+
+.personagem-animacao {
+    width: 100%;
+    height: 100%;
+}
+
+.pulo-leve {
+    animation: arcoY 0.15s ease-in-out;
+}
+
+.pulo-normal {
+    animation: arcoY 0.15s ease-in-out;
+}
+
+.pulo-pesado {
+    animation: arcoY-pesado 0.15s ease-in-out;
+}
+
+@keyframes arcoY {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-100px);
+    }
+}
+
+@keyframes arcoY-pesado {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes virar-esq {
+    0% {
+        transform: scaleX(1);
+    }
+
+    49% {
+        transform: scaleX(0.8);
+    }
+    50% {
+        transform: scaleX(-0.8);
+    }
+    100% {
+        transform: scaleX(-1);
+    }
+}
+
+@keyframes virar-dir {
+    0% {
+        transform: scaleX(-1);
+    }
+
+    49% {
+        transform: scaleX(-0.8);
+    }
+
+    50% {
+        transform: scaleX(0.8);
+    }
+
+    100% {
+        transform: scaleX(1);
+    }
+}

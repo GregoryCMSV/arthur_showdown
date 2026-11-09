@@ -245,6 +245,72 @@ namespace Arthur_Showdown_Database.Migrations
                     b.ToTable("Habilidades");
                 });
 
+            modelBuilder.Entity("Arthur_Showdown_Database.Models.Base.InimigoAcao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AtaqueId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Ordem")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PersonagemId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Valor")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AtaqueId");
+
+                    b.HasIndex("PersonagemId", "Ordem")
+                        .IsUnique();
+
+                    b.ToTable("InimigoAcoes");
+                });
+
+            modelBuilder.Entity("Arthur_Showdown_Database.Models.Base.InimigoRun", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CursorAcao")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PersonagemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Posicao")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VidaAtual")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("PersonagemId");
+
+                    b.ToTable("InimigosRun");
+                });
+
             modelBuilder.Entity("Arthur_Showdown_Database.Models.Base.Item", b =>
                 {
                     b.Property<int>("Id")
@@ -370,6 +436,9 @@ namespace Arthur_Showdown_Database.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AtaqueId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CooldownRestante")
                         .HasColumnType("integer");
 
                     b.Property<int?>("EfeitoId")
@@ -530,10 +599,16 @@ namespace Arthur_Showdown_Database.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("DirecaoOlhar")
+                        .HasColumnType("integer");
+
                     b.Property<int>("GameId")
                         .HasColumnType("integer");
 
                     b.Property<int>("PersonagemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Posicao")
                         .HasColumnType("integer");
 
                     b.Property<int>("VidaAtual")
@@ -620,7 +695,7 @@ namespace Arthur_Showdown_Database.Migrations
                         .WithMany()
                         .HasForeignKey("EfeitoId");
 
-                    b.OwnsOne("Arthur_Showdown_Database.Models.Base.HitboxConfig", "Hitbox", b1 =>
+                    b.OwnsOne("Arthur_Showdown_Shared.Dtos.Game.HitboxConfig", "Hitbox", b1 =>
                         {
                             b1.Property<int>("AtaqueId");
 
@@ -648,6 +723,42 @@ namespace Arthur_Showdown_Database.Migrations
 
                     b.Navigation("Hitbox")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Arthur_Showdown_Database.Models.Base.InimigoAcao", b =>
+                {
+                    b.HasOne("Arthur_Showdown_Database.Models.Base.Ataque", "Ataque")
+                        .WithMany()
+                        .HasForeignKey("AtaqueId");
+
+                    b.HasOne("Arthur_Showdown_Database.Models.Base.Personagem", "Personagem")
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ataque");
+
+                    b.Navigation("Personagem");
+                });
+
+            modelBuilder.Entity("Arthur_Showdown_Database.Models.Base.InimigoRun", b =>
+                {
+                    b.HasOne("Arthur_Showdown_Database.Models.Run.Game", "Game")
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Arthur_Showdown_Database.Models.Base.Personagem", "Personagem")
+                        .WithMany()
+                        .HasForeignKey("PersonagemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("Personagem");
                 });
 
             modelBuilder.Entity("Arthur_Showdown_Database.Models.Base.Local", b =>
