@@ -27,31 +27,22 @@ namespace Arthur__Showdown_API.Controllers.Game
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("Usuário não autenticado.");
 
-            // Flag: adicionar where para trazer só personagens desbloqueados
-
-            var personagens = await _db.Personagens
-                .Select(p => new PersonagemDto
-                {
-                    Id = p.Id,
-                    Nome = p.Nome,
-                    ImagemUrl = p.ImagemUrl,
-                    AtaquesIniciais = _db.PersonagemAtaques
-                        .AsNoTracking()
-                        .Where(pa => pa.PersonagemId == p.Id)
-                        .Select(pa => new AtaqueDto
-                        {
-                            Id = pa.Ataque.Id,
-                            Nome = pa.Ataque.Nome,
-                            Cooldown = pa.Ataque.Cooldown,
-                            Descricao = pa.Ataque.Descricao,
-                            Dano = pa.Ataque.Dano,
-                            IsFastAction = pa.Ataque.IsFastAction,
-                            LimiteAprimoramento = pa.Ataque.LimiteAprimoramento,
-                            ImagemUrl = pa.Ataque.ImagemUrl,
-                            HitboxJson = pa.Ataque.Hitbox.ToString()
-                        }).ToList()
-                })
+            var personagensDb = await _db.Personagens.AsNoTracking().ToListAsync();
+            var vinculos = await _db.PersonagemAtaques
+                .AsNoTracking()
+                .Include(pa => pa.Ataque)
                 .ToListAsync();
+
+            var personagens = personagensDb.Select(p => new PersonagemDto
+            {
+                Id = p.Id,
+                Nome = p.Nome,
+                ImagemUrl = p.ImagemUrl,
+                AtaquesIniciais = vinculos
+                    .Where(pa => pa.PersonagemId == p.Id)
+                    .Select(pa => AtaqueMapper.ToDto(pa.Ataque!))
+                    .ToList()
+            }).ToList();
 
             return Ok(personagens);
         }
