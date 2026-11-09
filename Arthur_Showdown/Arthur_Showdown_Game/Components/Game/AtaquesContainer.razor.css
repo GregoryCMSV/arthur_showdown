@@ -5,3 +5,45 @@
     background-color: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
 }
+
+.ataques-root {
+    position: relative;
+    padding-top: 110px;
+}
+
+.ataques-container {
+    position: relative;
+}
+
+/* Flag: display flex ou relative */
+.carta-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: transform .4s cubic-bezier(.2,.8,.2,1); 
+    will-change: transform;
+}
+
+.fila-painel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 90px;
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity .25s, transform .25s;
+}
+
+    .fila-painel.visivel {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+.fila-casa {
+    position: absolute;
+    width: 80px;
+    height: 90px;
+    border: 2px dashed rgba(255,255,255,.25);
+    border-radius: 8px;
+}

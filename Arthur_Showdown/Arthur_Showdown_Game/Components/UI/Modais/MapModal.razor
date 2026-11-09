@@ -1,12 +1,12 @@
-﻿<ModalComponent Titulo="Escolha seu destino" CssClass="map-modal">
+﻿<ModalComponent Titulo="Escolha seu destino" CssClass="map-modal" OnClose="OnClose">
     <div class="map-container">
         <div class="map-node node-start">
-            <img src="@PersonagemAtual?.ImagemUrl" alt="Player" class="node-player-icon" />
+            <img src="@_PlayerService.CurrentCharacter?.Personagem.ImagemUrl" alt="Player" class="node-player-icon" />
         </div>
 
         <div class="map-path"></div>
 
-        <div class="map-node node-combat">
+        <div class="map-node node-combat" @onclick="IrParaCombate">
             <span style="font-weight: bold; color: white;">B</span>
         </div>
     </div>

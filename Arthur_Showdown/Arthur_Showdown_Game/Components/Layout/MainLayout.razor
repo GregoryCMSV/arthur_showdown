@@ -1,3 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject InputManager Controle
 
-@Body
+<div class="global-input-wrapper" tabindex="0" autofocus @onkeydown="Controle.ProcessarTeclado">
+    @Body
+</div>

@@ -24,7 +24,7 @@
     align-items: center;
     color: white;
     font-weight: bold;
-    font-size: 24px;
+    font-size: 36px;
 }
 
 .slot-imagem {
@@ -55,5 +55,56 @@
     width: 12px;
     height: 4px;
     background-color: white;
-    border-radius: 1px;
+    border-radius: 6px;
+}
+
+.ataque-tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px); 
+    left: 50%;
+    transform: translateX(-50%); 
+    background-color: #22223b;
+    border: 2px solid #ffd166;
+    border-radius: 8px;
+    padding: 10px;
+    width: max-content; 
+    max-width: 200px; 
+    text-align: center;
+    z-index: 100;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    pointer-events: none; 
+}
+
+    .ataque-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%; 
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 8px;
+        border-style: solid;
+        border-color: #ffd166 transparent transparent transparent;
+    }
+
+.ataque-slot:hover .ataque-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ataque-tooltip strong {
+    display: block;
+    color: #ffd166;
+    font-size: 26px;
+    margin-bottom: 5px;
+}
+
+.ataque-tooltip p {
+    color: white;
+    font-size: 14px;
+    margin: 0;
+    font-weight: normal;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }

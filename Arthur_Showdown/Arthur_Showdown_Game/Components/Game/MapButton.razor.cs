@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Arthur_Showdown_Game.Components.Game
 {
-    public partial class Lobby
+    public partial class MapButton
     {
         [Parameter] public EventCallback OnStartClicked { get; set; }
     }

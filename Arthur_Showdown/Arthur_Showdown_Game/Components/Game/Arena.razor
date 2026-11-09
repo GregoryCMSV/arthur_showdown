@@ -1,4 +1,4 @@
-﻿<div class="battle-arena">
+<div class="battle-arena">
     @for (int i = 0; i < QuantidadeTiles; i++)
     {
         <Tile Indice="i"
@@ -7,8 +7,22 @@
               IsTremendo="i == TileTremendoId" />
     }
 
-    <Player PosicaoAtual="@PosicaoPersonagem"
-            IsMovendo="@EstaEmMovimento"
-            CategoriaPeso="1"
-            Personagem="PersonagemAtual" />
+    <Player StartPosition="PlayerStartPosition" />
+
+    @if (InimigoAtual != null)
+    {
+    }
+    @foreach (var ini in Inimigos)
+    {
+        <div class="inimigo-base" style="transform: translateX(calc(@ini.Estado.Posicao * 11.2vw));">
+            <div class="inimigo-intencao">@Intencao(ini)</div>
+            <div class="inimigo-visual" style="transform: scaleX(@Rumo(ini));">
+                @if (!string.IsNullOrEmpty(ini.Estado.ImagemUrl))
+                {
+                    <img src="@ini.Estado.ImagemUrl" alt="@ini.Estado.Nome" />
+                }
+            </div>
+            <div class="inimigo-vida">@ini.Estado.VidaAtual HP</div>
+        </div>
+    }
 </div>

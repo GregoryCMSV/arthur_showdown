@@ -1,0 +1,39 @@
+@if (_LoadingService.EstaCarregando)
+{
+    <Background ImagemUrl="">
+        <Label Tamanho="96px"> @loadingMessage </Label>
+    </Background>
+}
+else
+{
+    <Background ImagemUrl="@ImagemUrl" OnClick="OnClick">
+        <div class="scene-container">
+
+            @if (ParallaxLayer != null)
+            {
+                <div class="layer-parallax">
+                    @ParallaxLayer
+                </div>
+            }
+
+            <div class="layer-game">
+                @GameLayer
+            </div>
+
+            @if (EffectsLayer != null)
+            {
+                <div class="layer-effects">
+                    @EffectsLayer
+                </div>
+            }
+
+            @if (UILayer != null)
+            {
+                <div class="layer-ui">
+                    @UILayer
+                </div>
+            }
+
+        </div>
+    </Background>
+}

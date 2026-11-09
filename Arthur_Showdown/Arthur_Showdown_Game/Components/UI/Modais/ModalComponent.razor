@@ -1,5 +1,6 @@
 ﻿<div class="overlay-menu">
-    <div class="modal-base @CssClass">
+    <div class="modal-base @CssClass" @onclick:stopPropagation="true">
+        <button class="btn-close" @onclick="Fechar">X</button>
         @if (!string.IsNullOrEmpty(Titulo))
         {
             <Label Tamanho="32px" Cor="#ffd166">@Titulo</Label>

@@ -10,10 +10,12 @@ namespace Arthur_Showdown_Game.Services
         public event Action<int>? AoSolicitarMovimento;
 
         public event Action? AoSolicitarInteracao;
+        public event Action? AoSolicitarTrocaDirecao;
 
         public void MoverEsquerda() => AoSolicitarMovimento?.Invoke(-1);
         public void MoverDireita() => AoSolicitarMovimento?.Invoke(1);
         public void Interagir() => AoSolicitarInteracao?.Invoke();
+        public void TrocarDirecao() => AoSolicitarTrocaDirecao?.Invoke();
 
         public void ProcessarTeclado(KeyboardEventArgs e)
         {
@@ -23,6 +25,8 @@ namespace Arthur_Showdown_Game.Services
                 MoverDireita();
             else if (e.Key == "Enter" || e.Key == " ")
                 Interagir();
+            else if (e.Key == "w" || e.Key == "W" || e.Key == "ArrowUp")
+                TrocarDirecao();
         }
     }
 }

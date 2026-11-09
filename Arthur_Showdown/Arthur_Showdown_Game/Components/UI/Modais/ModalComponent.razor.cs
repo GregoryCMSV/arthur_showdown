@@ -11,5 +11,13 @@ namespace Arthur_Showdown_Game.Components.UI.Modais
         [Parameter] public string CssClass { get; set; } = "generic-modal";
         [Parameter] public bool MostrarDicaFechar { get; set; } = true;
         [Parameter] public RenderFragment? ChildContent { get; set; }
+
+        [Parameter] public EventCallback OnClose { get; set; }
+
+        private async Task Fechar()
+        {
+            if (OnClose.HasDelegate)
+                await OnClose.InvokeAsync();
+        }
     }
 }

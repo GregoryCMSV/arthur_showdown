@@ -1,0 +1,50 @@
+@page "/combat"
+@page "/combat/{GameId:int}"
+@* inicio flag *@
+@using Arthur_Showdown_Game.Services
+@*fim flag*@
+
+<Scene ImagemUrl="">
+
+    <GameLayer>
+        <div class="gameplay-container" tabindex="0" autofocus style="outline: none;">
+            @if (_pronto)
+            {
+                <Arena IsLobby=@false
+                       QuantidadeTiles="5"
+                       PlayerStartPosition="_posInicial"
+                       Inimigos="Turnos.Ctx.Inimigos" />
+            }
+        </div>
+    </GameLayer>
+
+    <UILayer>
+        <div style="position: absolute; top: 20px; width: 100%; text-align: center;">
+            
+            @if (_erro != null)
+            {
+                <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">@_erro</Label>
+            }
+            else if (_pronto)
+            {
+                <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">❤ @Turnos.Ctx.VidaAtual / @_vidaMax &nbsp;&nbsp; Turno @Turnos.Ctx.Turno</Label>
+            }
+        </div>
+
+        @if (_pronto && Turnos.Fase == FaseTurno.Fim)
+        {
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: rgba(0,0,0,.6); z-index: 50;">
+                <Label Tamanho="64px" Cor="white" Sombra="2px 2px 0px #000">@(Turnos.Ctx.VidaAtual <= 0 ? "Derrota" : "Vitória!")</Label>
+                <button @onclick="VoltarLobby">Voltar ao Lobby</button>
+            </div>
+        }
+
+        @if (_pronto)
+        {
+            <div class="hud-bottom">
+                <AtaquesContainer />
+            </div>
+        }
+    </UILayer>
+
+</Scene>

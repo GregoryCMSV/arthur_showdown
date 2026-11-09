@@ -15,5 +15,8 @@ namespace Arthur_Showdown_Game.Services
         }
 
         public string ObterBackgroundLogin() => $"{_backgroundPath}BGLogin.jpg";
+
+        public string ObterBackgroundLobby() => $"{_backgroundPath}BGLobby.jpg";
+        
     }
 }
