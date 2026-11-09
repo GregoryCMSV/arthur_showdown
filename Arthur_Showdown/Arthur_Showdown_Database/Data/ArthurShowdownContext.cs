@@ -38,6 +38,9 @@ namespace Arthur_Showdown_Database.Data
         public DbSet<HabilidadesRun> HabilidadesRun { get; set; }
         public DbSet<WaveAtual> WavesAtuais { get; set; }
 
+        public DbSet<InimigoAcao> InimigoAcoes { get; set; }      
+        public DbSet<InimigoRun> InimigosRun { get; set; }
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -94,6 +97,10 @@ namespace Arthur_Showdown_Database.Data
                 new StatusRun { Id = 3, Nome = "Derrota" },
                 new StatusRun { Id = 4, Nome = "Desistencia" }
             );
+
+            modelBuilder.Entity<InimigoAcao>().HasIndex(a => new { a.PersonagemId, a.Ordem }).IsUnique();
+            modelBuilder.Entity<InimigoAcao>().Property(a => a.Tipo).HasConversion<string>();
+            modelBuilder.Entity<InimigoRun>().HasOne(i => i.Game).WithMany().HasForeignKey(i => i.GameId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

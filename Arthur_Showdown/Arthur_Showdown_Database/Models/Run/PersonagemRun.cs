@@ -14,5 +14,8 @@ namespace Arthur_Showdown_Database.Models.Run
         public int VidaAtual { get; set; }
         public int GameId { get; set; }
         public Game? Game { get; set; }
+
+        public int Posicao { get; set; }
+        public int DirecaoOlhar { get; set; } = 1;
     }
 }
