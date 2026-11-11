@@ -8,8 +8,8 @@
                 {
                     <div class="fila-item">
                         <div class="fila-controles">
-                            <button type="button" class="fila-btn" title="Subir na fila" @onclick="() => MoverFila(c, -1)" @onclick:stopPropagation="true">▲</button>
-                            <button type="button" class="fila-btn" title="Descer na fila" @onclick="() => MoverFila(c, 1)" @onclick:stopPropagation="true">▼</button>
+                            <button type="button" class="fila-btn" title="Subir visualmente" @onclick="() => MoverFila(c, 1)" @onclick:stopPropagation="true">▲</button>
+                            <button type="button" class="fila-btn" title="Descer visualmente" @onclick="() => MoverFila(c, -1)" @onclick:stopPropagation="true">▼</button>
                         </div>
                         <div @onclick="() => RemoverDaFila(c)" title="Clique para remover da fila" style="cursor: pointer;">
                             <AtaqueSlot Ataque="c.Ataque" Numero="c.Ataque.Dano" Mini="true" />

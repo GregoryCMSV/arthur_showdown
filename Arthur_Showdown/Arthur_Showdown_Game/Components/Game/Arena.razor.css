@@ -51,7 +51,7 @@
 
 .inimigo-fila {
     position: absolute;
-    bottom: calc(100% + 8px);
+    bottom: calc(100% + 2.4vw);
     left: 50%;
     transform: translateX(-50%);
     display: flex;

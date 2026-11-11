@@ -36,8 +36,23 @@ public class InimigoEmCombate
     }
 
     private InimigoAcaoDto? AcaoAtacar => Fila.FirstOrDefault(a => a.Tipo == "Atacar");
-    public AtaqueDto? Ataque => AcaoAtacar?.Ataque;
-    public int Dano => AcaoAtacar?.Ataque?.Dano ?? AcaoAtacar?.Valor ?? 0;
+
+    public List<AtaqueDto> AtaquesNaFila => Fila
+        .Where(a => a.Tipo == "Atacar")
+        .Select(a => a.Ataque ?? new AtaqueDto
+        {
+            Nome = "Ataque",
+            Dano = a.Valor > 0 ? a.Valor : 1
+        })
+        .DefaultIfEmpty(new AtaqueDto
+        {
+            Nome = "Ataque",
+            Dano = Dano > 0 ? Dano : 2
+        })
+        .ToList();
+
+    public AtaqueDto? Ataque => AcaoAtacar?.Ataque ?? AtaquesNaFila.FirstOrDefault();
+    public int Dano => AcaoAtacar?.Ataque?.Dano ?? AcaoAtacar?.Valor ?? 2;
     public int RecuoAposAtaque => Fila.FirstOrDefault(a => a.Tipo == "RecuarAposAtaque")?.Valor ?? 0;
     public int RecuoSeProximo => Fila.FirstOrDefault(a => a.Tipo == "RecuarSeProximo")?.Valor ?? 0;
 
