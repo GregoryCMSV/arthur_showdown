@@ -16,6 +16,16 @@ public class InimigoEmCombate
         Fila = estado.Acoes.OrderBy(a => a.Ordem).ToList();
     }
 
+    // Estado transitorio do comportamento (nao persistido)
+    public bool Preparado { get; set; }
+    public bool RecuoPendente { get; set; }
+
+    private InimigoAcaoDto? AcaoAtacar => Fila.FirstOrDefault(a => a.Tipo == "Atacar");
+    public AtaqueDto? Ataque => AcaoAtacar?.Ataque;
+    public int Dano => AcaoAtacar?.Ataque?.Dano ?? AcaoAtacar?.Valor ?? 0;
+    public int RecuoAposAtaque => Fila.FirstOrDefault(a => a.Tipo == "RecuarAposAtaque")?.Valor ?? 0;
+    public int RecuoSeProximo => Fila.FirstOrDefault(a => a.Tipo == "RecuarSeProximo")?.Valor ?? 0;
+
     public InimigoAcaoDto? Proxima => Fila.Count == 0 ? null : Fila[Estado.CursorAcao % Fila.Count];
 
     public void Avancar()

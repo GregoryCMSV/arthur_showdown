@@ -15,5 +15,6 @@ namespace Arthur_Showdown_Database.Models.Base
         public int VidaAtual { get; set; }
         public int Posicao { get; set; }
         public int CursorAcao { get; set; }
+        public int DirecaoOlhar { get; set; } = 1;
     }
 }
