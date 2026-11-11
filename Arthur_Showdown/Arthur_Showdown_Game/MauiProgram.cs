@@ -24,6 +24,7 @@ namespace Arthur_Showdown_Game
             builder.Services.AddScoped<EnemiesService>();
             builder.Services.AddScoped<LoadingService>();
             builder.Services.AddScoped<TurnManager>();
+            builder.Services.AddScoped<SoundService>();
             builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG

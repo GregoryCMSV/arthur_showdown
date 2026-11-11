@@ -17,6 +17,7 @@ public partial class Home : ComponentBase
     [Inject] private HTTPService HttpService { get; set; } = default!;
     [Inject] private NavigationService NavService { get; set; } = default!;
     [Inject] private InputManager Input { get; set; } = default!;
+    [Inject] private SoundService Som { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -27,6 +28,7 @@ public partial class Home : ComponentBase
     {
         if (EstadoAtual == GameState.PressAnyKey)
         {
+            _ = Som.IniciarMusicaAsync();
             var token = await SecureStorage.Default.GetAsync("auth_token");
             if (!string.IsNullOrEmpty(token))
             {

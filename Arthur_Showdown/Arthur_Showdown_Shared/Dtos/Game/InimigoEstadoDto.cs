@@ -14,6 +14,8 @@ namespace Arthur_Showdown_Shared.Dtos.Game
         public bool Preparado { get; set; }
         public bool Telegrafando { get; set; }
         public bool RecuoPendente { get; set; }   // lado para o qual olha (-1 esquerda, 1 direita)
+        public bool Amaldicoado { get; set; }
+        public bool EfeitoEspelhoAtivo { get; set; }
         public List<InimigoAcaoDto> Acoes { get; set; } = new();   // fila de ações, vem do banco
     }
 }

@@ -8,6 +8,7 @@ namespace Arthur_Showdown_Shared.Dtos.Game
         public int QtdUsosNaRun { get; set; }
         public int QtdVezesAdicionadoFila { get; set; }
         public int QtdVezesRemovidoFila { get; set; }
+        public int? EfeitoId { get; set; }
         public AtaqueDto? Ataque { get; set; }
     }
 }

@@ -35,11 +35,17 @@
                 {
                     <div class="aviso" @onclick:stopPropagation="true">
                         <Label Tamanho="60px" Cor="#ffd166">Opções</Label>
-                        <Label Tamanho="34px" Cor="#ffffff" Margem="20px 0">
+                        <Label Tamanho="34px" Cor="#ffffff" Margem="10px 0">
                             Controles na tela (Mobile / Teste PC): @(Input.MostrarControlesNaTela ? "Ativado" : "Desativado")
                         </Label>
                         <button class="btn-sim" @onclick="Input.AlternarControlesNaTela">
                             @(Input.MostrarControlesNaTela ? "Ocultar Controles na Tela" : "Exibir Controles na Tela")
+                        </button>
+                        <button class="btn-sim" @onclick="Som.AlternarMusicaAsync">
+                            Música de Fundo: @(Som.MusicaAtiva ? "Ligada" : "Desligada")
+                        </button>
+                        <button class="btn-sim" @onclick="Som.AlternarEfeitosAsync">
+                            Efeitos Sonoros: @(Som.EfeitosAtivos ? "Ligados" : "Desligados")
                         </button>
                         <button class="btn-nao" @onclick="() => MostrarOpcoes = false">Voltar</button>
                     </div>

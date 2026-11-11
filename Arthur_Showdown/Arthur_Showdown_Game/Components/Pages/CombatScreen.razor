@@ -3,7 +3,7 @@
 @using Arthur_Showdown_Game.Services
 @using Arthur_Showdown_Shared.Dtos.Game
 
-<Scene ImagemUrl="">
+<Scene ImagemUrl="@_backgroundUrl">
 
     <GameLayer>
         <div class="gameplay-container" tabindex="0" autofocus style="outline: none;">
@@ -37,7 +37,7 @@
                 <Label Tamanho="36px" Cor="#ffd166" Sombra="2px 2px 0px #000">Wave Concluída! Escolha um ataque para melhorar:</Label>
                 <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">@DescricaoMelhoria(_melhoriaSorteada)</Label>
                 <div class="recompensa-opcoes">
-                    @foreach (var c in Turnos.Cartas)
+                    @foreach (var c in Turnos.Cartas.Where(carta => PodeReceberMelhoria(carta, _melhoriaSorteada)))
                     {
                         <div class="recompensa-card" @onclick="() => SelecionarMelhoria(c)">
                             <AtaqueSlot Ataque="c.Ataque" Numero="c.Ataque.Dano" />

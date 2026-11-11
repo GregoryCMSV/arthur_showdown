@@ -1,4 +1,5 @@
 using Arthur_Showdown_Game.Models;
+using Arthur_Showdown_Shared.Dtos.Game;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,10 +20,14 @@ public class BatalhaContexto
     public CharacterModel Jogador { get; init; } = default!;
     public int VidaAtual { get; set; }
     public List<InimigoEmCombate> Inimigos { get; set; } = new();
+    public List<InimigoEstadoDto> PoolInimigosInvocacao { get; init; } = new();
     public int Turno { get; set; }
     public int TilesTotal { get; init; } = 5;
     public int QtdMudancaDirecao { get; set; }
     public int QtdHitsSofridos { get; set; }
+    public bool EscudoAtivo { get; set; }
     public EfeitoVisualAtaque? EfeitoVisual { get; set; }
     public Action? NotificarVisual { get; set; }
+    public Action<bool>? TocarSomHit { get; set; }
+    public Action? TocarSomMovimento { get; set; }
 }

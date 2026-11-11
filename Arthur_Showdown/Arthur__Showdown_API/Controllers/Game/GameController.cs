@@ -180,6 +180,8 @@ namespace Arthur__Showdown_API.Controllers.Game
                     d.QtdUsosNaRun = Math.Max(d.QtdUsosNaRun, c.QtdUsosNaRun);
                     d.QtdVezesAdicionadoFila = Math.Max(d.QtdVezesAdicionadoFila, c.QtdVezesAdicionadoFila);
                     d.QtdVezesRemovidoFila = Math.Max(d.QtdVezesRemovidoFila, c.QtdVezesRemovidoFila);
+                    if (c.EfeitoId.HasValue && d.EfeitoId == null)
+                        d.EfeitoId = c.EfeitoId;
                 }
             }
 
@@ -261,6 +263,18 @@ namespace Arthur__Showdown_API.Controllers.Game
                         break;
                     case TipoMelhoriaAtaque.AcaoRapida:
                         item.IsFastAction = true;
+                        break;
+                    case TipoMelhoriaAtaque.EfeitoMaldicao:
+                        if (item.EfeitoId == null && item.Ataque.EfeitoId != 1)
+                            item.EfeitoId = 1;
+                        break;
+                    case TipoMelhoriaAtaque.EfeitoEspelho:
+                        if (item.EfeitoId == null && item.Ataque.EfeitoId != 2)
+                            item.EfeitoId = 2;
+                        break;
+                    case TipoMelhoriaAtaque.EfeitoEscudo:
+                        if (item.EfeitoId == null && item.Ataque.EfeitoId != 3 && item.Ataque.Id != 2)
+                            item.EfeitoId = 3;
                         break;
                 }
                 item.NumeroDeUpgrades++;
@@ -590,6 +604,7 @@ namespace Arthur__Showdown_API.Controllers.Game
                 OuroAtual = game.OuroAtual,
                 TotalOuroGanho = game.TotalOuroGanho,
                 LocalAtualId = game.LocalAtualId,
+                LocalImagemUrl = local?.ImagemUrl,
                 Turno = game.TurnosJogados,
                 TempoSegundos = game.TempoSegundos,
                 QtdMudancaDirecao = game.QtdMudancaDirecao,
@@ -613,6 +628,7 @@ namespace Arthur__Showdown_API.Controllers.Game
                     QtdUsosNaRun = d.QtdUsosNaRun,
                     QtdVezesAdicionadoFila = d.QtdVezesAdicionadoFila,
                     QtdVezesRemovidoFila = d.QtdVezesRemovidoFila,
+                    EfeitoId = d.EfeitoId,
                     Ataque = AtaqueMapper.ToDto(d)
                 }).ToList(),
                 Inimigos = inimigosRun.Select(i => new InimigoEstadoDto
