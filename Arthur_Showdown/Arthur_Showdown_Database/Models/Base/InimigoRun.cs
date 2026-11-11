@@ -16,5 +16,8 @@ namespace Arthur_Showdown_Database.Models.Base
         public int Posicao { get; set; }
         public int CursorAcao { get; set; }
         public int DirecaoOlhar { get; set; } = 1;
+        public bool Preparado { get; set; }      // ataque ja esta na fila do inimigo
+        public bool Telegrafando { get; set; }   // tile piscando: ataca no proximo turno
+        public bool RecuoPendente { get; set; }
     }
 }

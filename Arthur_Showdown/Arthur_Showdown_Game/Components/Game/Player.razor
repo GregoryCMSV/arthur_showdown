@@ -1,6 +1,23 @@
-﻿@if (_currentCharacter != null)
+@if (_currentCharacter != null)
 {
     <div class="personagem-base" style="transform: translateX(calc(@_currentCharacter.PosicaoPersonagem * 11.2vw));">
+        @if (_currentCharacter.ModoCombate && FilaJogador.Any())
+        {
+            <div class="fila-vertical">
+                @foreach (var c in FilaJogador)
+                {
+                    <div class="fila-item">
+                        <div class="fila-controles">
+                            <button type="button" class="fila-btn" title="Subir na fila" @onclick="() => MoverFila(c, -1)" @onclick:stopPropagation="true">▲</button>
+                            <button type="button" class="fila-btn" title="Descer na fila" @onclick="() => MoverFila(c, 1)" @onclick:stopPropagation="true">▼</button>
+                        </div>
+                        <div @onclick="() => RemoverDaFila(c)" title="Clique para remover da fila" style="cursor: pointer;">
+                            <AtaqueSlot Ataque="c.Ataque" Numero="c.Ataque.Dano" Mini="true" />
+                        </div>
+                    </div>
+                }
+            </div>
+        }
         <div class="personagem-animacao @ClasseAnimacao">
             <div class="personagem-visual @ClasseGiro" style="transform: scaleX(@_currentCharacter.DirecaoOlhar);">
                 @if (_currentCharacter.Personagem != null && !string.IsNullOrEmpty(_currentCharacter.Personagem.ImagemUrl))

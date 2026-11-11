@@ -10,6 +10,8 @@ namespace Arthur_Showdown_Game.Components.Game
         public AtaqueDto Ataque { get; init; } = default!;
         public int DeckAtaquesId { get; set; }
         public int CooldownRestante { get; set; }
-        public bool EmFila => CooldownRestante > 0;
+        public int? PosicaoFila { get; set; }
+        public bool EmFila => PosicaoFila.HasValue;
+        public bool EmCooldown => CooldownRestante > 0;
     }
 }

@@ -1,4 +1,4 @@
-﻿.ataque-slot {
+.ataque-slot {
     width: 90px;
     height: 90px;
     background-color: #4a4e69;
@@ -16,6 +16,27 @@
         background-color: #5c3c45;
         border-color: #ef233c;
     }
+
+    .ataque-slot.em-cooldown {
+        opacity: 0.65;
+        filter: grayscale(0.5);
+    }
+
+    .ataque-slot.mini {
+        width: 48px;
+        height: 48px;
+        padding-bottom: 0;
+        border-width: 2px;
+    }
+
+        .ataque-slot.mini .slot-numero {
+            font-size: 20px;
+        }
+
+        .ataque-slot.mini .slot-imagem img {
+            max-width: 28px;
+            height: 28px;
+        }
 
 .slot-numero {
     width: 30%;
@@ -56,7 +77,16 @@
     height: 4px;
     background-color: white;
     border-radius: 6px;
+    transition: background-color 0.2s;
 }
+
+    .cooldown-block.gasto {
+        background-color: #6c757d;
+    }
+
+    .cooldown-block.pronto {
+        background-color: white;
+    }
 
 .ataque-tooltip {
     position: absolute;

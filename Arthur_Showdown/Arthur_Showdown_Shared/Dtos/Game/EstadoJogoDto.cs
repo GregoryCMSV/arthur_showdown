@@ -12,6 +12,12 @@ namespace Arthur_Showdown_Shared.Dtos.Game
         public int VidaMaxima { get; set; }
         public int Posicao { get; set; }
         public int DirecaoOlhar { get; set; } = 1;
+        public int TamanhoMapa { get; set; } = 5;
+        public int SessaoNumero { get; set; }
+        public int TotalSessoes { get; set; }
+        public int WaveNumero { get; set; }
+        public int TotalWaves { get; set; }
+        public bool Vitoria { get; set; }
         public List<CartaEstadoDto> Deck { get; set; } = new();
         public List<InimigoEstadoDto> Inimigos { get; set; } = new();
     }

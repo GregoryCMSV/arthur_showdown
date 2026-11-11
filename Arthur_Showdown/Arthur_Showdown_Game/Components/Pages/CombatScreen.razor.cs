@@ -1,18 +1,20 @@
+using Arthur_Showdown_Game.Components.Game;
+using Arthur_Showdown_Game.Models;
 using Arthur_Showdown_Game.Services;
 using Arthur_Showdown_Shared.Dtos.Game;
 using Microsoft.AspNetCore.Components;
-/* inicio flag */
-using Arthur_Showdown_Game.Components.Game;
-/*fim flag*/
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Arthur_Showdown_Game.Components.Pages
 {
     public partial class CombatScreen : IDisposable
     {
-        [Inject] public NavigationService NavService { get; set; }
+        [Inject] public NavigationService NavService { get; set; } = default!;
 
         [Parameter] public int? GameId { get; set; }
-        [Inject] public LoadingService _LoadingService { get; set; }
+        [Inject] public LoadingService _LoadingService { get; set; } = default!;
         [Inject] public HTTPService Http { get; set; } = default!;
         [Inject] public PlayerService _PlayerService { get; set; } = default!;
         [Inject] public InputManager Input { get; set; } = default!;
@@ -23,6 +25,10 @@ namespace Arthur_Showdown_Game.Components.Pages
         private int _ouro;
         private int _localId;
         private int _posInicial = 1;
+        private int _sessaoNumero = 1;
+        private int _totalSessoes = 1;
+        private int _waveNumero = 1;
+        private int _totalWaves = 1;
         private bool _pronto;
         private string? _erro;
         private bool _assinado;
@@ -48,37 +54,13 @@ namespace Arthur_Showdown_Game.Components.Pages
                 var estado = await Http.GetEstado(_gameId);
                 if (estado == null) { _erro = "Não foi possível carregar o jogo."; return; }
 
-                _vidaMax = estado.VidaMaxima;
-                _ouro = estado.OuroAtual;
-                _localId = estado.LocalAtualId;
-                _posInicial = estado.Posicao;
-
-                model.PosicaoPersonagem = estado.Posicao;
-                model.DirecaoOlhar = estado.DirecaoOlhar == 0 ? 1 : estado.DirecaoOlhar;
-                model.ModoCombate = true;   
-
-                var cartas = estado.Deck.Select(d => new CartaAtaque
-                {
-                    DeckAtaquesId = d.DeckAtaquesId,
-                    CooldownRestante = d.CooldownRestante,
-                    Ataque = d.Ataque
-                }).ToList();
-
-                var inimigos = estado.Inimigos.Select(i => new InimigoEmCombate(i)).ToList();
-
-                Turnos.Iniciar(new BatalhaContexto
-                {
-                    Jogador = model,
-                    VidaAtual = estado.VidaAtual,
-                    Turno = estado.Turno,
-                    Inimigos = inimigos
-                }, cartas);
+                AplicarEstado(model, estado);
 
                 Turnos.OnMudou += AoMudar;
                 Turnos.OnTurnoFinalizado += AoTurnoFinalizado;
                 Input.AoSolicitarMovimento += AoMover;
                 Input.AoSolicitarTrocaDirecao += AoVirar;
-                Input.AoSolicitarInteracao += AoEsperar;
+                Input.AoSolicitarInteracao += AoExecutarFila;
                 _assinado = true;
 
                 _pronto = true;
@@ -93,9 +75,46 @@ namespace Arthur_Showdown_Game.Components.Pages
             }
         }
 
+        private void AplicarEstado(CharacterModel model, EstadoJogoDto estado)
+        {
+            int tiles = estado.TamanhoMapa > 0 ? estado.TamanhoMapa : 5;
+            _vidaMax = estado.VidaMaxima;
+            _ouro = estado.OuroAtual;
+            _localId = estado.LocalAtualId;
+            _posInicial = estado.Posicao;
+            _sessaoNumero = estado.SessaoNumero > 0 ? estado.SessaoNumero : 1;
+            _totalSessoes = estado.TotalSessoes > 0 ? estado.TotalSessoes : 1;
+            _waveNumero = estado.WaveNumero > 0 ? estado.WaveNumero : 1;
+            _totalWaves = estado.TotalWaves > 0 ? estado.TotalWaves : 1;
+
+            model.PosicaoPersonagem = estado.Posicao;
+            model.DirecaoOlhar = estado.DirecaoOlhar == 0 ? 1 : estado.DirecaoOlhar;
+            model.LimiteMapa = tiles;
+            model.ModoCombate = true;
+
+            var cartas = estado.Deck.Select(d => new CartaAtaque
+            {
+                DeckAtaquesId = d.DeckAtaquesId,
+                CooldownRestante = d.CooldownRestante,
+                PosicaoFila = d.PosicaoFila,
+                Ataque = d.Ataque
+            }).ToList();
+
+            var inimigos = estado.Inimigos.Select(i => new InimigoEmCombate(i)).ToList();
+
+            Turnos.Iniciar(new BatalhaContexto
+            {
+                Jogador = model,
+                VidaAtual = estado.VidaAtual,
+                Turno = estado.Turno,
+                TilesTotal = tiles,
+                Inimigos = inimigos
+            }, cartas);
+        }
+
         private void AoMover(int dir) => _ = Turnos.JogadorAgirAsync(new MoverAcao(dir));
         private void AoVirar() => _ = Turnos.JogadorAgirAsync(new VirarAcao());
-        private void AoEsperar() => _ = Turnos.JogadorAgirAsync(new EsperarAcao());
+        private void AoExecutarFila() => _ = Turnos.JogadorAgirAsync(new ExecutarFilaAcao(Turnos.Cartas));
 
         private void AoMudar() => InvokeAsync(StateHasChanged);
 
@@ -103,9 +122,21 @@ namespace Arthur_Showdown_Game.Components.Pages
         {
             try
             {
-                await Http.SalvarEstado(_gameId, GerarSnapshot());
-                if (Turnos.Fase == FaseTurno.Fim && Turnos.Ctx.VidaAtual <= 0)
+                bool limpouWave = Turnos.Ctx.Inimigos.Count == 0 && Turnos.Ctx.VidaAtual > 0;
+                var novoEstado = await Http.SalvarEstado(_gameId, GerarSnapshot());
+
+                if (Turnos.Ctx.VidaAtual <= 0)
+                {
                     await Http.FinalizarGame(_gameId, vitoria: false);
+                    return;
+                }
+
+                // Se limpou a wave e o servidor spawnou a proxima wave/sessao, atualiza o contexto
+                if (limpouWave && novoEstado != null && !novoEstado.Vitoria && novoEstado.Inimigos.Count > 0 && _PlayerService.CurrentCharacter != null)
+                {
+                    AplicarEstado(_PlayerService.CurrentCharacter, novoEstado);
+                    await InvokeAsync(StateHasChanged);
+                }
             }
             catch { }
         }
@@ -123,10 +154,16 @@ namespace Arthur_Showdown_Game.Components.Pages
                 VidaMaxima = _vidaMax,
                 Posicao = ctx.Jogador.PosicaoPersonagem,
                 DirecaoOlhar = ctx.Jogador.DirecaoOlhar,
+                TamanhoMapa = ctx.TilesTotal,
+                SessaoNumero = _sessaoNumero,
+                TotalSessoes = _totalSessoes,
+                WaveNumero = _waveNumero,
+                TotalWaves = _totalWaves,
                 Deck = Turnos.Cartas.Select(c => new CartaEstadoDto
                 {
                     DeckAtaquesId = c.DeckAtaquesId,
-                    CooldownRestante = c.CooldownRestante
+                    CooldownRestante = c.CooldownRestante,
+                    PosicaoFila = c.PosicaoFila
                 }).ToList(),
                 Inimigos = ctx.Inimigos.Where(i => i.Vivo).Select(i => i.Estado).ToList()
             };
@@ -141,9 +178,12 @@ namespace Arthur_Showdown_Game.Components.Pages
             Turnos.OnTurnoFinalizado -= AoTurnoFinalizado;
             Input.AoSolicitarMovimento -= AoMover;
             Input.AoSolicitarTrocaDirecao -= AoVirar;
-            Input.AoSolicitarInteracao -= AoEsperar;
-            if (_PlayerService.CurrentCharacter != null) _PlayerService.CurrentCharacter.ModoCombate = false;
+            Input.AoSolicitarInteracao -= AoExecutarFila;
+            if (_PlayerService.CurrentCharacter != null)
+            {
+                _PlayerService.CurrentCharacter.ModoCombate = false;
+                _PlayerService.CurrentCharacter.LimiteMapa = 5;
+            }
         }
     }
-
 }

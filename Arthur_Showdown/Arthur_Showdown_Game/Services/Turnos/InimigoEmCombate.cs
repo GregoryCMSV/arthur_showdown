@@ -1,6 +1,7 @@
 using Arthur_Showdown_Shared.Dtos.Game;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Arthur_Showdown_Game.Services;
 
@@ -16,9 +17,23 @@ public class InimigoEmCombate
         Fila = estado.Acoes.OrderBy(a => a.Ordem).ToList();
     }
 
-    // Estado transitorio do comportamento (nao persistido)
-    public bool Preparado { get; set; }
-    public bool RecuoPendente { get; set; }
+    public bool Preparado
+    {
+        get => Estado.Preparado;
+        set => Estado.Preparado = value;
+    }
+
+    public bool Telegrafando
+    {
+        get => Estado.Telegrafando;
+        set => Estado.Telegrafando = value;
+    }
+
+    public bool RecuoPendente
+    {
+        get => Estado.RecuoPendente;
+        set => Estado.RecuoPendente = value;
+    }
 
     private InimigoAcaoDto? AcaoAtacar => Fila.FirstOrDefault(a => a.Tipo == "Atacar");
     public AtaqueDto? Ataque => AcaoAtacar?.Ataque;
