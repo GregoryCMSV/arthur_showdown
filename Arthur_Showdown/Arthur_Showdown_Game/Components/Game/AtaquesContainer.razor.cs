@@ -12,15 +12,15 @@ namespace Arthur_Showdown_Game.Components.Game
         const int SlotW = 90, SlotH = 90, Gap = 10;
         [Inject] public PlayerService _PlayerService { get; set; } = default!;
         [Inject] public TurnManager _Turnos { get; set; } = default!;
-        private List<CartaAtaque> _cartas = new();
+        private List<CartaAtaque> _cartas => _Turnos.Cartas;
 
         protected override void OnInitialized()
         {
-            var ataques = _PlayerService.CurrentCharacter?.GetAtaques() ?? new();
-            _cartas = _Turnos.Cartas.Any()
-                ? _Turnos.Cartas
-                : ataques.Select(a => new CartaAtaque { Ataque = a }).ToList();
-            _Turnos.Cartas = _cartas;
+            if (!_Turnos.Cartas.Any())
+            {
+                var ataques = _PlayerService.CurrentCharacter?.GetAtaques() ?? new();
+                _Turnos.Cartas = ataques.Select(a => new CartaAtaque { Ataque = a }).ToList();
+            }
             _Turnos.OnMudou += Atualizar;
         }
 

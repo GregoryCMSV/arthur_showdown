@@ -92,13 +92,15 @@ namespace Arthur_Showdown_Game.Components.Pages
             model.LimiteMapa = tiles;
             model.ModoCombate = true;
 
-            var cartas = estado.Deck.Select(d => new CartaAtaque
-            {
-                DeckAtaquesId = d.DeckAtaquesId,
-                CooldownRestante = d.CooldownRestante,
-                PosicaoFila = d.PosicaoFila,
-                Ataque = d.Ataque
-            }).ToList();
+            var cartas = estado.Deck
+                .Where(d => d.Ataque != null)
+                .Select(d => new CartaAtaque
+                {
+                    DeckAtaquesId = d.DeckAtaquesId,
+                    CooldownRestante = d.CooldownRestante,
+                    PosicaoFila = d.PosicaoFila,
+                    Ataque = d.Ataque!
+                }).ToList();
 
             var inimigos = estado.Inimigos.Select(i => new InimigoEmCombate(i)).ToList();
 
@@ -131,8 +133,8 @@ namespace Arthur_Showdown_Game.Components.Pages
                     return;
                 }
 
-                // Se limpou a wave e o servidor spawnou a proxima wave/sessao, atualiza o contexto
-                if (limpouWave && novoEstado != null && !novoEstado.Vitoria && novoEstado.Inimigos.Count > 0 && _PlayerService.CurrentCharacter != null)
+                // Se limpou a wave e o servidor spawnou a proxima wave/sessao (ou marcou vitoria), atualiza o contexto
+                if (limpouWave && novoEstado != null && _PlayerService.CurrentCharacter != null)
                 {
                     AplicarEstado(_PlayerService.CurrentCharacter, novoEstado);
                     await InvokeAsync(StateHasChanged);
