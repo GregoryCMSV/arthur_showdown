@@ -39,14 +39,25 @@ public class InimigoEmCombate
 
     public List<AtaqueDto> AtaquesNaFila => Fila
         .Where(a => a.Tipo == "Atacar")
-        .Select(a => a.Ataque ?? new AtaqueDto
+        .Select(a =>
         {
-            Nome = "Ataque",
-            Dano = a.Valor > 0 ? a.Valor : 1
+            if (a.Ataque != null)
+            {
+                if (string.IsNullOrEmpty(a.Ataque.ImagemUrl))
+                    a.Ataque.ImagemUrl = Estado.ImagemUrl;
+                return a.Ataque;
+            }
+            return new AtaqueDto
+            {
+                Nome = "Ataque",
+                ImagemUrl = Estado.ImagemUrl,
+                Dano = a.Valor > 0 ? a.Valor : 1
+            };
         })
         .DefaultIfEmpty(new AtaqueDto
         {
             Nome = "Ataque",
+            ImagemUrl = Estado.ImagemUrl,
             Dano = Dano > 0 ? Dano : 2
         })
         .ToList();

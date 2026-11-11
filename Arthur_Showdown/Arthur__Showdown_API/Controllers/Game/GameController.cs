@@ -104,7 +104,9 @@ namespace Arthur__Showdown_API.Controllers.Game
                 PersonagemRunId = pr.Id,
                 AtaqueId = pa.AtaqueId,
                 LimiteUpgrade = pa.Ataque!.LimiteAprimoramento,
-                IsFastAction = pa.Ataque.IsFastAction
+                IsFastAction = pa.Ataque.IsFastAction,
+                CooldownRestante = 0,
+                PosicaoFila = null
             }));
 
             await SpawnWaveAsync(game, pr);
@@ -116,7 +118,7 @@ namespace Arthur__Showdown_API.Controllers.Game
         }
 
         [HttpGet("{id:int}/estado")]
-        public async Task<IActionResult> GetEstado(int id)
+        public async Task<IActionResult> GetEstado(int id, [FromQuery] bool resetCooldown = false)
         {
             var userId = _tokenService.ObterUsuarioId();
             if (string.IsNullOrEmpty(userId)) return Unauthorized("Usuário inválido no token.");
@@ -124,6 +126,21 @@ namespace Arthur__Showdown_API.Controllers.Game
 
             var game = await _db.Games.FirstOrDefaultAsync(g => g.Id == id && g.JogadorId == jogadorId);
             if (game is null) return NotFound();
+
+            if (resetCooldown && game.DataFim == null)
+            {
+                var pr = await _db.PersonagensRun.FirstOrDefaultAsync(p => p.GameId == id);
+                if (pr != null)
+                {
+                    var deck = await _db.DecksAtaques.Where(d => d.PersonagemRunId == pr.Id).ToListAsync();
+                    foreach (var d in deck)
+                    {
+                        d.CooldownRestante = 0;
+                        d.PosicaoFila = null;
+                    }
+                    await _db.SaveChangesAsync();
+                }
+            }
 
             return Ok(await MontarEstadoAsync(game));
         }
@@ -142,6 +159,10 @@ namespace Arthur__Showdown_API.Controllers.Game
 
             game.TurnosJogados = req.Turno;
             game.OuroAtual = req.OuroAtual;
+            game.TotalOuroGanho = Math.Max(game.TotalOuroGanho, req.TotalOuroGanho);
+            game.TempoSegundos = Math.Max(game.TempoSegundos, req.TempoSegundos);
+            game.QtdMudancaDirecao = Math.Max(game.QtdMudancaDirecao, req.QtdMudancaDirecao);
+            game.QtdHitsSofridos = Math.Max(game.QtdHitsSofridos, req.QtdHitsSofridos);
 
             var pr = await _db.PersonagensRun.FirstAsync(p => p.GameId == id);
             pr.VidaAtual = req.VidaAtual;
@@ -156,6 +177,9 @@ namespace Arthur__Showdown_API.Controllers.Game
                 {
                     d.CooldownRestante = c.CooldownRestante;
                     d.PosicaoFila = c.PosicaoFila;
+                    d.QtdUsosNaRun = Math.Max(d.QtdUsosNaRun, c.QtdUsosNaRun);
+                    d.QtdVezesAdicionadoFila = Math.Max(d.QtdVezesAdicionadoFila, c.QtdVezesAdicionadoFila);
+                    d.QtdVezesRemovidoFila = Math.Max(d.QtdVezesRemovidoFila, c.QtdVezesRemovidoFila);
                 }
             }
 
@@ -179,11 +203,110 @@ namespace Arthur__Showdown_API.Controllers.Game
             }
             else
             {
-                await AvancarWaveOuSessaoAsync(game, pr);
+                await AvancarWaveOuSessaoAsync(game, pr, deck);
             }
 
             await _db.SaveChangesAsync();
             await tx.CommitAsync();
+
+            return Ok(await MontarEstadoAsync(game));
+        }
+
+        [HttpPost("{id:int}/melhoria")]
+        public async Task<IActionResult> AplicarMelhoria(int id, [FromBody] AplicarMelhoriaRequest req)
+        {
+            var userId = _tokenService.ObterUsuarioId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("Usuário inválido no token.");
+            var jogadorId = Guid.Parse(userId);
+
+            var game = await _db.Games.FirstOrDefaultAsync(g => g.Id == id && g.JogadorId == jogadorId && g.DataFim == null);
+            if (game is null) return NotFound();
+
+            var pr = await _db.PersonagensRun.FirstAsync(p => p.GameId == id);
+            var item = await _db.DecksAtaques
+                .Include(d => d.Ataque)
+                .FirstOrDefaultAsync(d => d.Id == req.DeckAtaquesId && d.PersonagemRunId == pr.Id);
+
+            if (item != null && item.Ataque != null)
+            {
+                switch (req.Tipo)
+                {
+                    case TipoMelhoriaAtaque.MaisUmDano:
+                        item.ModDano += 1;
+                        break;
+                    case TipoMelhoriaAtaque.MaisDoisDanoMaisUmCooldown:
+                        item.ModDano += 2;
+                        item.ModCooldown += 1;
+                        break;
+                    case TipoMelhoriaAtaque.MenosUmCooldown:
+                        int cdAtual = item.Ataque.Cooldown + item.ModCooldown;
+                        if (cdAtual > 0) item.ModCooldown -= 1;
+                        break;
+                    case TipoMelhoriaAtaque.AcaoRapida:
+                        item.IsFastAction = true;
+                        break;
+                }
+                item.NumeroDeUpgrades++;
+                await _db.SaveChangesAsync();
+            }
+
+            return Ok(await MontarEstadoAsync(game));
+        }
+
+        [HttpGet("{id:int}/opcoes-ataque")]
+        public async Task<IActionResult> ObterOpcoesNovoAtaque(int id)
+        {
+            var userId = _tokenService.ObterUsuarioId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("Usuário inválido no token.");
+            var jogadorId = Guid.Parse(userId);
+
+            var game = await _db.Games.FirstOrDefaultAsync(g => g.Id == id && g.JogadorId == jogadorId && g.DataFim == null);
+            if (game is null) return NotFound();
+
+            var pr = await _db.PersonagensRun.FirstAsync(p => p.GameId == id);
+            var jaNoDeck = await _db.DecksAtaques
+                .Where(d => d.PersonagemRunId == pr.Id)
+                .Select(d => d.AtaqueId)
+                .ToListAsync();
+
+            var todosAtaques = await _db.Ataques.AsNoTracking().ToListAsync();
+            var disponiveis = todosAtaques.Where(a => !jaNoDeck.Contains(a.Id)).ToList();
+            if (disponiveis.Count < 2) disponiveis = todosAtaques;
+
+            var escolhidos = disponiveis
+                .OrderBy(_ => Random.Shared.Next())
+                .Take(2)
+                .Select(AtaqueMapper.ToDto)
+                .ToList();
+
+            return Ok(escolhidos);
+        }
+
+        [HttpPost("{id:int}/novo-ataque")]
+        public async Task<IActionResult> EscolherNovoAtaque(int id, [FromBody] EscolherNovoAtaqueRequest req)
+        {
+            var userId = _tokenService.ObterUsuarioId();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized("Usuário inválido no token.");
+            var jogadorId = Guid.Parse(userId);
+
+            var game = await _db.Games.FirstOrDefaultAsync(g => g.Id == id && g.JogadorId == jogadorId && g.DataFim == null);
+            if (game is null) return NotFound();
+
+            var pr = await _db.PersonagensRun.FirstAsync(p => p.GameId == id);
+            var ataque = await _db.Ataques.FindAsync(req.AtaqueId);
+            if (ataque != null)
+            {
+                _db.DecksAtaques.Add(new DeckAtaques
+                {
+                    PersonagemRunId = pr.Id,
+                    AtaqueId = ataque.Id,
+                    LimiteUpgrade = ataque.LimiteAprimoramento,
+                    IsFastAction = ataque.IsFastAction,
+                    CooldownRestante = 0,
+                    PosicaoFila = null
+                });
+                await _db.SaveChangesAsync();
+            }
 
             return Ok(await MontarEstadoAsync(game));
         }
@@ -224,7 +347,7 @@ namespace Arthur__Showdown_API.Controllers.Game
             return Ok(new { Mensagem = "Jogo abandonado com sucesso." });
         }
 
-        private async Task AvancarWaveOuSessaoAsync(Arthur_Showdown_Database.Models.Run.Game game, PersonagemRun pr)
+        private async Task AvancarWaveOuSessaoAsync(Arthur_Showdown_Database.Models.Run.Game game, PersonagemRun pr, List<DeckAtaques> deck)
         {
             var local = await _db.Locais.FindAsync(game.LocalAtualId);
             if (local == null) return;
@@ -258,11 +381,18 @@ namespace Arthur__Showdown_API.Controllers.Game
                 game.SessaoAtualId = novaSessao.Id;
                 game.WaveNumero = 1;
                 pr.Posicao = Math.Clamp(pr.Posicao, 0, Math.Max(0, novaSessao.TamanhoMapa - 1));
+
+                // Ao trocar de sessao, o cooldown dos ataques vem sempre liberado
+                foreach (var d in deck)
+                {
+                    d.CooldownRestante = 0;
+                    d.PosicaoFila = null;
+                }
+
                 await SpawnWaveAsync(game, pr);
                 return;
             }
 
-            // Completou todas as sessoes do local -> vitoria
             game.DataFim = DateTime.UtcNow;
             game.StatusRunId = 2;
         }
@@ -284,6 +414,8 @@ namespace Arthur__Showdown_API.Controllers.Game
             int tamanho = sessao?.TamanhoMapa > 0 ? sessao.TamanhoMapa : 5;
             bool ehBoss = local != null && sessao != null && sessao.NumeroSessao == local.QtdSessoes && local.ChefeId.HasValue;
 
+            var geradosIds = new List<int>();
+
             if (ehBoss)
             {
                 var chefe = await _db.Personagens.FindAsync(local!.ChefeId!.Value);
@@ -302,6 +434,8 @@ namespace Arthur__Showdown_API.Controllers.Game
                         CursorAcao = 0,
                         DirecaoOlhar = dirBoss
                     });
+                    geradosIds.Add(chefe.Id);
+                    await RegistrarWaveAtualAsync(game, geradosIds);
                     return;
                 }
             }
@@ -344,7 +478,22 @@ namespace Arthur__Showdown_API.Controllers.Game
                     CursorAcao = 0,
                     DirecaoOlhar = Random.Shared.Next(2) == 0 ? -1 : 1
                 });
+                geradosIds.Add(escolhido.Id);
             }
+
+            await RegistrarWaveAtualAsync(game, geradosIds);
+        }
+
+        private async Task RegistrarWaveAtualAsync(Arthur_Showdown_Database.Models.Run.Game game, List<int> inimigosIds)
+        {
+            var wa = new WaveAtual
+            {
+                GameId = game.Id,
+                InimigosGeradosIds = inimigosIds
+            };
+            _db.WavesAtuais.Add(wa);
+            await _db.SaveChangesAsync();
+            game.WaveAtualId = wa.Id;
         }
 
         private async Task<EstadoJogoDto> MontarEstadoAsync(Arthur_Showdown_Database.Models.Run.Game game)
@@ -363,7 +512,6 @@ namespace Arthur__Showdown_API.Controllers.Game
                 .OrderBy(i => i.Id)
                 .ToListAsync();
 
-            // Jogos antigos criados antes das waves/sessoes: inicializa a sessao 1 / wave 1
             if (sessao != null && game.SessaoAtualId == null)
             {
                 game.SessaoAtualId = sessao.Id;
@@ -405,8 +553,12 @@ namespace Arthur__Showdown_API.Controllers.Game
             {
                 GameId = game.Id,
                 OuroAtual = game.OuroAtual,
+                TotalOuroGanho = game.TotalOuroGanho,
                 LocalAtualId = game.LocalAtualId,
                 Turno = game.TurnosJogados,
+                TempoSegundos = game.TempoSegundos,
+                QtdMudancaDirecao = game.QtdMudancaDirecao,
+                QtdHitsSofridos = game.QtdHitsSofridos,
                 VidaAtual = pr.VidaAtual,
                 VidaMaxima = pr.VidaMaxima,
                 Posicao = pr.Posicao,
@@ -422,7 +574,10 @@ namespace Arthur__Showdown_API.Controllers.Game
                     DeckAtaquesId = d.Id,
                     CooldownRestante = d.CooldownRestante,
                     PosicaoFila = d.PosicaoFila,
-                    Ataque = AtaqueMapper.ToDto(d.Ataque!)
+                    QtdUsosNaRun = d.QtdUsosNaRun,
+                    QtdVezesAdicionadoFila = d.QtdVezesAdicionadoFila,
+                    QtdVezesRemovidoFila = d.QtdVezesRemovidoFila,
+                    Ataque = AtaqueMapper.ToDto(d)
                 }).ToList(),
                 Inimigos = inimigosRun.Select(i => new InimigoEstadoDto
                 {

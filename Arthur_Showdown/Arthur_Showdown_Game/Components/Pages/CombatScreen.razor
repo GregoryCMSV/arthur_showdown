@@ -1,6 +1,7 @@
 @page "/combat"
 @page "/combat/{GameId:int}"
 @using Arthur_Showdown_Game.Services
+@using Arthur_Showdown_Shared.Dtos.Game
 
 <Scene ImagemUrl="">
 
@@ -25,12 +26,43 @@
             else if (_pronto)
             {
                 <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">
-                    ❤ @Turnos.Ctx.VidaAtual / @_vidaMax &nbsp;&nbsp; Sessão @_sessaoNumero/@_totalSessoes &nbsp;&nbsp; Wave @_waveNumero/@_totalWaves &nbsp;&nbsp; Turno @Turnos.Ctx.Turno
+                    ❤ @Turnos.Ctx.VidaAtual / @_vidaMax &nbsp;&nbsp; Sessão @_sessaoNumero/@_totalSessoes &nbsp;&nbsp; Wave @_waveNumero/@_totalWaves &nbsp;&nbsp; Turno @Turnos.Ctx.Turno &nbsp;&nbsp; ⏱ @FormatarTempo(_tempoSegundos) &nbsp;&nbsp; ↻ @Turnos.Ctx.QtdMudancaDirecao
                 </Label>
             }
         </div>
 
-        @if (_pronto && Turnos.Fase == FaseTurno.Fim)
+        @if (_pronto && _escolhendoMelhoria)
+        {
+            <div class="recompensa-overlay" @onclick:stopPropagation="true">
+                <Label Tamanho="36px" Cor="#ffd166" Sombra="2px 2px 0px #000">Wave Concluída! Escolha um ataque para melhorar:</Label>
+                <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">@DescricaoMelhoria(_melhoriaSorteada)</Label>
+                <div class="recompensa-opcoes">
+                    @foreach (var c in Turnos.Cartas)
+                    {
+                        <div class="recompensa-card" @onclick="() => SelecionarMelhoria(c)">
+                            <AtaqueSlot Ataque="c.Ataque" Numero="c.Ataque.Dano" />
+                            <span>@c.Ataque.Nome</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (_pronto && _escolhendoNovoAtaque)
+        {
+            <div class="recompensa-overlay" @onclick:stopPropagation="true">
+                <Label Tamanho="36px" Cor="#ffd166" Sombra="2px 2px 0px #000">Sessão Concluída! Escolha um novo ataque para o seu deck:</Label>
+                <div class="recompensa-opcoes">
+                    @foreach (var atk in _opcoesNovoAtaque)
+                    {
+                        <div class="recompensa-card" @onclick="() => SelecionarNovoAtaque(atk)">
+                            <AtaqueSlot Ataque="atk" Numero="atk.Dano" />
+                            <span>@atk.Nome</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else if (_pronto && Turnos.Fase == FaseTurno.Fim)
         {
             <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: rgba(0,0,0,.6); z-index: 50;">
                 <Label Tamanho="64px" Cor="white" Sombra="2px 2px 0px #000">@(Turnos.Ctx.VidaAtual <= 0 ? "Derrota" : "Vitória!")</Label>

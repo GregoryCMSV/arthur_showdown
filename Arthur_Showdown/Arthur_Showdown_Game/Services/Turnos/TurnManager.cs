@@ -65,7 +65,10 @@ public class TurnManager
             Ctx.Turno++;
         }
 
-        Fase = Ctx.Inimigos.Count == 0 || Ctx.VidaAtual <= 0 ? FaseTurno.Fim : FaseTurno.Jogador;
+        if (Ctx.VidaAtual <= 0)
+            Fase = FaseTurno.Fim;
+        else if (Ctx.Inimigos.Count > 0)
+            Fase = FaseTurno.Jogador;
         OnMudou?.Invoke();
         if (houveMudanca) OnTurnoFinalizado?.Invoke();
     }

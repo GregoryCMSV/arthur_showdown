@@ -16,8 +16,8 @@ public static class InimigoIA
         int dist = Math.Abs(posJogador - pos);
         int rumo = Rumo(e, posJogador);
 
-        if (e.RecuoPendente && PodeRecuar(e, posJogador, todos, tilesTotal))
-            return DecisaoInimigo.Recuar;
+        if (e.RecuoPendente)
+            return PodeRecuar(e, posJogador, todos, tilesTotal) ? DecisaoInimigo.Recuar : DecisaoInimigo.Esperar;
         if (e.RecuoSeProximo > 0 && dist == 1 && !e.Telegrafando && PodeRecuar(e, posJogador, todos, tilesTotal))
             return DecisaoInimigo.Recuar;
 
