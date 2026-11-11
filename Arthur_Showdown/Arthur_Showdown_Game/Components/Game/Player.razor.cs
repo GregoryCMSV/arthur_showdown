@@ -14,7 +14,7 @@ namespace Arthur_Showdown_Game.Components.Game
         [Inject] public TurnManager _Turnos { get; set; } = default!;
         [Parameter] public int StartPosition { get; set; } = 0;
 
-        private CharacterModel _currentCharacter = default!;
+        private CharacterModel? _subscribedCharacter;
 
         private List<CartaAtaque> FilaJogador => _Turnos.Cartas
             .Where(c => c.EmFila)
@@ -24,18 +24,32 @@ namespace Arthur_Showdown_Game.Components.Game
         protected override void OnInitialized()
         {
             base.OnInitialized();
-            _currentCharacter = _PlayerService.CurrentCharacter!;
+            VincularPersonagem();
             _PlayerService.SetStartPosition(StartPosition);
-            if (_PlayerService.CurrentCharacter != null)
-                _PlayerService.CurrentCharacter.OnChange += AtualizarPlayer;
             _Turnos.OnMudou += AtualizarPlayer;
         }
 
-        private CharacterModel CurrentCharacter() => _PlayerService.CurrentCharacter!;
+        protected override void OnParametersSet()
+        {
+            base.OnParametersSet();
+            VincularPersonagem();
+        }
 
-        private string ClasseAnimacao => CurrentCharacter().EstaEmMovimento ? ObterAnimacaoPorPeso() : "";
+        private void VincularPersonagem()
+        {
+            if (_subscribedCharacter == _PlayerService.CurrentCharacter) return;
+            if (_subscribedCharacter != null)
+                _subscribedCharacter.OnChange -= AtualizarPlayer;
+            _subscribedCharacter = _PlayerService.CurrentCharacter;
+            if (_subscribedCharacter != null)
+                _subscribedCharacter.OnChange += AtualizarPlayer;
+        }
 
-        private string ObterAnimacaoPorPeso() => CurrentCharacter().CategoriaPeso switch
+        private CharacterModel? CurrentCharacter() => _PlayerService.CurrentCharacter;
+
+        private string ClasseAnimacao => CurrentCharacter()?.EstaEmMovimento == true ? ObterAnimacaoPorPeso() : "";
+
+        private string ObterAnimacaoPorPeso() => (CurrentCharacter()?.CategoriaPeso ?? 1) switch
         {
             0 => "pulo-leve",
             2 => "pulo-pesado",
@@ -52,13 +66,13 @@ namespace Arthur_Showdown_Game.Components.Game
 
         public void Dispose()
         {
-            if (_PlayerService.CurrentCharacter != null)
-                _PlayerService.CurrentCharacter.OnChange -= AtualizarPlayer;
+            if (_subscribedCharacter != null)
+                _subscribedCharacter.OnChange -= AtualizarPlayer;
             _Turnos.OnMudou -= AtualizarPlayer;
         }
 
         private void AtualizarPlayer() => InvokeAsync(StateHasChanged);
 
-        private string ClasseGiro => CurrentCharacter().EstaVirando ? (CurrentCharacter().DirecaoOlhar == -1 ? "virando-esquerda" : "virando-direita") : "";
+        private string ClasseGiro => CurrentCharacter()?.EstaVirando == true ? (CurrentCharacter()!.DirecaoOlhar == -1 ? "virando-esquerda" : "virando-direita") : "";
     }
 }

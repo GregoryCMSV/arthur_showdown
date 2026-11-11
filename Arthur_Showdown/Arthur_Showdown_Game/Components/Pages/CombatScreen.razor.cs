@@ -40,6 +40,7 @@ namespace Arthur_Showdown_Game.Components.Pages
         private CancellationTokenSource? _ctsTimer;
 
         private bool _escolhendoMelhoria;
+        private bool _processandoFimTurno;
         private TipoMelhoriaAtaque _melhoriaSorteada = TipoMelhoriaAtaque.MaisUmDano;
         private bool _escolhendoNovoAtaque;
         private List<AtaqueDto> _opcoesNovoAtaque = new();
@@ -66,6 +67,33 @@ namespace Arthur_Showdown_Game.Components.Pages
                 // Ao iniciar combate ou voltar do login, o cooldown dos ataques vem sempre liberado
                 var estado = await Http.GetEstado(_gameId, resetCooldown: true);
                 if (estado == null) { _erro = "Não foi possível carregar o jogo."; return; }
+
+                // Se a API conectada ainda nao tiver os campos de sessao/wave (ex.: servidor remoto desatualizado),
+                // inicializa a estrutura local das 3 sessoes da Floresta para permitir a progressao completa
+                if (estado.TotalSessoes <= 0)
+                {
+                    estado.SessaoNumero = 1;
+                    estado.TotalSessoes = 3;
+                    estado.WaveNumero = 1;
+                    estado.TotalWaves = 3;
+                    estado.TamanhoMapa = 5;
+                    if (estado.Inimigos.Count <= 1)
+                    {
+                        var livres = Enumerable.Range(0, 5)
+                            .Where(t => t != estado.Posicao)
+                            .OrderByDescending(t => Math.Abs(t - estado.Posicao))
+                            .ToList();
+                        string[] nomes = { "Esqueleto", "Arqueiro", "Lanceiro" };
+                        estado.Inimigos.Clear();
+                        for (int i = 0; i < 2; i++)
+                        {
+                            var nome = nomes[Random.Shared.Next(nomes.Length)];
+                            int vida = nome == "Lanceiro" ? 4 : 3;
+                            int dir = Random.Shared.Next(2) == 0 ? -1 : 1;
+                            estado.Inimigos.Add(CriarInimigoFallback(nome, vida, livres[i], dir));
+                        }
+                    }
+                }
 
                 AplicarEstado(model, estado);
 
@@ -125,6 +153,7 @@ namespace Arthur_Showdown_Game.Components.Pages
 
         private void AplicarEstado(CharacterModel model, EstadoJogoDto estado)
         {
+            bool novaWaveOuSessao = _sessaoNumero != estado.SessaoNumero || _waveNumero != estado.WaveNumero || estado.Turno == 0;
             int tiles = estado.TamanhoMapa > 0 ? estado.TamanhoMapa : 5;
             _vidaMax = estado.VidaMaxima;
             _ouro = estado.OuroAtual;
@@ -155,7 +184,17 @@ namespace Arthur_Showdown_Game.Components.Pages
                     Ataque = d.Ataque!
                 }).ToList();
 
-            var inimigos = estado.Inimigos.Select(i => new InimigoEmCombate(i)).ToList();
+            var inimigos = estado.Inimigos.Select(i =>
+            {
+                if (novaWaveOuSessao)
+                {
+                    i.Preparado = false;
+                    i.Telegrafando = false;
+                    i.RecuoPendente = false;
+                    i.CursorAcao = 0;
+                }
+                return new InimigoEmCombate(i);
+            }).ToList();
 
             Turnos.Iniciar(new BatalhaContexto
             {
@@ -199,25 +238,34 @@ namespace Arthur_Showdown_Game.Components.Pages
 
         private async void AoTurnoFinalizado()
         {
+            if (_processandoFimTurno) return;
             try
             {
+                _processandoFimTurno = true;
                 bool limpouWave = Turnos.Ctx.Inimigos.Count == 0 && Turnos.Ctx.VidaAtual > 0;
                 int sessaoAntes = _sessaoNumero;
 
-                var novoEstado = await Http.SalvarEstado(_gameId, GerarSnapshot());
-
                 if (Turnos.Ctx.VidaAtual <= 0)
                 {
+                    await Http.SalvarEstado(_gameId, GerarSnapshot());
                     await Http.FinalizarGame(_gameId, vitoria: false);
                     return;
                 }
 
+                // Se ja estamos aguardando escolha de recompensa, nao envia lista vazia de inimigos de novo
+                if (limpouWave && (_escolhendoMelhoria || _escolhendoNovoAtaque || _estadoPendentePosRecompensa != null))
+                    return;
+
+                var novoEstado = await Http.SalvarEstado(_gameId, GerarSnapshot());
+
                 if (!limpouWave) return;
 
-                if (novoEstado == null)
+                if (novoEstado == null || (novoEstado.Inimigos.Count == 0 && !novoEstado.Vitoria))
                 {
-                    // Fallback caso o PUT nao tenha retornado o novo estado: recarrega do servidor
-                    novoEstado = await Http.GetEstado(_gameId);
+                    // Fallback: se o servidor conectado for uma versao antiga que retorna 204 NoContent no PUT
+                    // e nao gera waves automaticamente no banco, avanca a wave/sessao no cliente e persiste
+                    novoEstado = AvancarWaveLocalmente();
+                    await Http.SalvarEstado(_gameId, novoEstado);
                 }
 
                 if (novoEstado == null || _PlayerService.CurrentCharacter == null) return;
@@ -225,6 +273,7 @@ namespace Arthur_Showdown_Game.Components.Pages
                 if (novoEstado.Vitoria)
                 {
                     AplicarEstado(_PlayerService.CurrentCharacter, novoEstado);
+                    Turnos.FinalizarPartida();
                     await InvokeAsync(StateHasChanged);
                     return;
                 }
@@ -234,8 +283,8 @@ namespace Arthur_Showdown_Game.Components.Pages
 
                 if (mudouSessao)
                 {
-                    var opcoes = await Http.ObterOpcoesNovoAtaque(_gameId);
-                    if (opcoes != null && opcoes.Count > 0)
+                    var opcoes = await Http.ObterOpcoesNovoAtaque(_gameId) ?? ObterOpcoesAtaqueFallback();
+                    if (opcoes.Count > 0)
                     {
                         _opcoesNovoAtaque = opcoes;
                         _escolhendoNovoAtaque = true;
@@ -252,17 +301,26 @@ namespace Arthur_Showdown_Game.Components.Pages
                     return;
                 }
 
+                _estadoPendentePosRecompensa = null;
                 AplicarEstado(_PlayerService.CurrentCharacter, novoEstado);
                 await InvokeAsync(StateHasChanged);
             }
             catch { }
+            finally
+            {
+                _processandoFimTurno = false;
+            }
         }
 
         private async Task SelecionarMelhoria(CartaAtaque c)
         {
             _escolhendoMelhoria = false;
-            var atualizado = await Http.AplicarMelhoria(_gameId, c.DeckAtaquesId, _melhoriaSorteada)
-                             ?? _estadoPendentePosRecompensa;
+            var atualizado = await Http.AplicarMelhoria(_gameId, c.DeckAtaquesId, _melhoriaSorteada);
+            if (atualizado == null)
+            {
+                AplicarMelhoriaLocal(c.DeckAtaquesId, _melhoriaSorteada);
+                atualizado = _estadoPendentePosRecompensa;
+            }
             _estadoPendentePosRecompensa = null;
 
             if (atualizado != null && _PlayerService.CurrentCharacter != null)
@@ -274,14 +332,184 @@ namespace Arthur_Showdown_Game.Components.Pages
         private async Task SelecionarNovoAtaque(AtaqueDto atk)
         {
             _escolhendoNovoAtaque = false;
-            var atualizado = await Http.EscolherNovoAtaque(_gameId, atk.Id)
-                             ?? _estadoPendentePosRecompensa;
+            var atualizado = await Http.EscolherNovoAtaque(_gameId, atk.Id);
+            if (atualizado == null && _estadoPendentePosRecompensa != null)
+            {
+                _estadoPendentePosRecompensa.Deck.Add(new CartaEstadoDto
+                {
+                    DeckAtaquesId = _estadoPendentePosRecompensa.Deck.Count + 1,
+                    CooldownRestante = 0,
+                    PosicaoFila = null,
+                    Ataque = atk
+                });
+                atualizado = _estadoPendentePosRecompensa;
+            }
             _estadoPendentePosRecompensa = null;
 
             if (atualizado != null && _PlayerService.CurrentCharacter != null)
                 AplicarEstado(_PlayerService.CurrentCharacter, atualizado);
 
             await InvokeAsync(StateHasChanged);
+        }
+
+        private void AplicarMelhoriaLocal(int deckAtaquesId, TipoMelhoriaAtaque tipo)
+        {
+            var c = _estadoPendentePosRecompensa?.Deck.FirstOrDefault(d => d.DeckAtaquesId == deckAtaquesId);
+            if (c?.Ataque == null) return;
+            switch (tipo)
+            {
+                case TipoMelhoriaAtaque.MaisUmDano:
+                    c.Ataque.Dano += 1;
+                    break;
+                case TipoMelhoriaAtaque.MaisDoisDanoMaisUmCooldown:
+                    c.Ataque.Dano += 2;
+                    c.Ataque.Cooldown += 1;
+                    break;
+                case TipoMelhoriaAtaque.MenosUmCooldown:
+                    c.Ataque.Cooldown = Math.Max(0, c.Ataque.Cooldown - 1);
+                    break;
+                case TipoMelhoriaAtaque.AcaoRapida:
+                    c.Ataque.IsFastAction = true;
+                    break;
+            }
+        }
+
+        private static List<AtaqueDto> ObterOpcoesAtaqueFallback() => new()
+        {
+            new AtaqueDto { Id = 101, Nome = "Estocada Rápida", Descricao = "Ataque de 2 células à frente", Dano = 2, Cooldown = 1, IsFastAction = true, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":2}" },
+            new AtaqueDto { Id = 102, Nome = "Golpe Pesado", Descricao = "Golpe devastador a 1 célula", Dano = 4, Cooldown = 2, IsFastAction = false, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":1}" }
+        };
+
+        private EstadoJogoDto AvancarWaveLocalmente()
+        {
+            int sessao = _sessaoNumero;
+            int totalSessoes = _totalSessoes > 0 ? _totalSessoes : 3;
+            int wave = _waveNumero + 1;
+            int totalWaves = sessao == 1 ? 3 : (sessao == 2 ? 5 : 1);
+            bool mudouSessao = false;
+
+            if (wave > totalWaves)
+            {
+                sessao++;
+                wave = 1;
+                mudouSessao = true;
+            }
+
+            bool vitoria = sessao > totalSessoes;
+            int tamanho = sessao <= 1 ? 5 : 7;
+            totalWaves = sessao == 1 ? 3 : (sessao == 2 ? 5 : 1);
+
+            var deckDto = Turnos.Cartas.Select(c => new CartaEstadoDto
+            {
+                DeckAtaquesId = c.DeckAtaquesId,
+                CooldownRestante = mudouSessao ? 0 : c.CooldownRestante,
+                PosicaoFila = mudouSessao ? null : c.PosicaoFila,
+                QtdUsosNaRun = c.QtdUsosNaRun,
+                QtdVezesAdicionadoFila = c.QtdVezesAdicionadoFila,
+                QtdVezesRemovidoFila = c.QtdVezesRemovidoFila,
+                Ataque = c.Ataque
+            }).ToList();
+
+            int posJog = Math.Clamp(Turnos.Ctx.Jogador.PosicaoPersonagem, 0, tamanho - 1);
+            var inimigos = new List<InimigoEstadoDto>();
+
+            if (!vitoria)
+            {
+                if (sessao == totalSessoes)
+                {
+                    int posBoss = posJog == tamanho - 1 ? 0 : tamanho - 1;
+                    int dirBoss = Math.Sign(posJog - posBoss);
+                    if (dirBoss == 0) dirBoss = -1;
+                    inimigos.Add(CriarInimigoFallback("Tank", 20, posBoss, dirBoss));
+                }
+                else
+                {
+                    int[] wavesS1 = { 2, 2, 3 };
+                    int[] wavesS2 = { 3, 3, 3, 4, 4 };
+                    int qtd = sessao == 1 ? wavesS1[Math.Clamp(wave - 1, 0, 2)] : wavesS2[Math.Clamp(wave - 1, 0, 4)];
+                    var livres = Enumerable.Range(0, tamanho)
+                        .Where(t => t != posJog)
+                        .OrderByDescending(t => Math.Abs(t - posJog))
+                        .ToList();
+                    string[] nomes = { "Esqueleto", "Arqueiro", "Lanceiro" };
+                    for (int i = 0; i < Math.Min(qtd, livres.Count); i++)
+                    {
+                        var nome = nomes[Random.Shared.Next(nomes.Length)];
+                        int vida = nome == "Lanceiro" ? 4 : 3;
+                        int dir = Random.Shared.Next(2) == 0 ? -1 : 1;
+                        inimigos.Add(CriarInimigoFallback(nome, vida, livres[i], dir));
+                    }
+                }
+            }
+
+            return new EstadoJogoDto
+            {
+                GameId = _gameId,
+                OuroAtual = _ouro,
+                TotalOuroGanho = _totalOuroGanho,
+                LocalAtualId = _localId,
+                Turno = Turnos.Ctx.Turno,
+                TempoSegundos = _tempoSegundos,
+                QtdMudancaDirecao = Turnos.Ctx.QtdMudancaDirecao,
+                QtdHitsSofridos = Turnos.Ctx.QtdHitsSofridos,
+                VidaAtual = Turnos.Ctx.VidaAtual,
+                VidaMaxima = _vidaMax,
+                Posicao = posJog,
+                DirecaoOlhar = Turnos.Ctx.Jogador.DirecaoOlhar,
+                TamanhoMapa = tamanho,
+                SessaoNumero = Math.Min(sessao, totalSessoes),
+                TotalSessoes = totalSessoes,
+                WaveNumero = wave,
+                TotalWaves = totalWaves,
+                Vitoria = vitoria,
+                Deck = deckDto,
+                Inimigos = inimigos
+            };
+        }
+
+        private static InimigoEstadoDto CriarInimigoFallback(string nome, int vida, int pos, int dir)
+        {
+            var (id, img, atkNome, dano, alcMax, recuoTipo) = nome switch
+            {
+                "Tank" => (2, "https://png.pngtree.com/png-clipart/20230703/ourmid/pngtree-battle-tank-png-image_7444190.png", "Golpe do Tank", 3, 1, ""),
+                "Arqueiro" => (3, "https://thumbs.dreamstime.com/b/archer-fantasy-pixel-art-game-cartoon-character-elf-archer-fantasy-cartoon-character-video-game-sprite-pixel-art-style-413574152.jpg", "Flecha do Arqueiro", 2, 99, "RecuarSeProximo"),
+                "Lanceiro" => (4, "https://i.pinimg.com/736x/fd/fe/11/fdfe11675f947ee2fe982472a3ba0f4d.jpg", "Estocada do Lanceiro", 2, 2, "RecuarAposAtaque"),
+                _ => (1, "https://magicoloriage.com/wp-content/uploads/2025/06/Pixel-art-de-squelette-Minecraft-avec-arc.jpeg", "Golpe do Esqueleto", 2, 1, "RecuarAposAtaque")
+            };
+
+            var acoes = new List<InimigoAcaoDto>
+            {
+                new InimigoAcaoDto
+                {
+                    Ordem = 0,
+                    Tipo = "Atacar",
+                    Valor = dano,
+                    Ataque = new AtaqueDto
+                    {
+                        Nome = atkNome,
+                        ImagemUrl = img,
+                        Dano = dano,
+                        HitboxJson = $"{{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":{alcMax}}}"
+                    }
+                }
+            };
+            if (!string.IsNullOrEmpty(recuoTipo))
+                acoes.Add(new InimigoAcaoDto { Ordem = 1, Tipo = recuoTipo, Valor = 1 });
+
+            return new InimigoEstadoDto
+            {
+                PersonagemId = id,
+                Nome = nome,
+                ImagemUrl = img,
+                VidaAtual = vida,
+                Posicao = pos,
+                CursorAcao = 0,
+                Direcao = dir,
+                Preparado = false,
+                Telegrafando = false,
+                RecuoPendente = false,
+                Acoes = acoes
+            };
         }
 
         private EstadoJogoDto GerarSnapshot()
@@ -319,7 +547,20 @@ namespace Arthur_Showdown_Game.Components.Pages
             };
         }
 
-        private void VoltarLobby() => NavService.GoToLobby();
+        private void VoltarLobby()
+        {
+            foreach (var c in Turnos.Cartas)
+            {
+                c.PosicaoFila = null;
+                c.CooldownRestante = 0;
+            }
+            if (_PlayerService.CurrentCharacter != null)
+            {
+                _PlayerService.CurrentCharacter.ModoCombate = false;
+                _PlayerService.CurrentCharacter.LimiteMapa = 5;
+            }
+            NavService.GoToLobby();
+        }
 
         public void Dispose()
         {

@@ -21,6 +21,24 @@ public class TurnManager
         Fase = ctx.Inimigos.Count == 0 || ctx.VidaAtual <= 0 ? FaseTurno.Fim : FaseTurno.Jogador;
     }
 
+    public void ResetarParaLobby(List<CartaAtaque> cartasIniciais)
+    {
+        foreach (var c in cartasIniciais)
+        {
+            c.CooldownRestante = 0;
+            c.PosicaoFila = null;
+        }
+        Cartas = cartasIniciais;
+        Fase = FaseTurno.Jogador;
+        OnMudou?.Invoke();
+    }
+
+    public void FinalizarPartida()
+    {
+        Fase = FaseTurno.Fim;
+        OnMudou?.Invoke();
+    }
+
     public void MoverNaFila(CartaAtaque carta, int delta)
     {
         if (Fase != FaseTurno.Jogador || !carta.EmFila) return;
