@@ -18,6 +18,7 @@ public class CharacterModel : IDisposable
     public bool EstaVirando { get; set; } = false;
     public int CategoriaPeso { get; set; } = 1;
     public bool ModoCombate { get; set; } = false;
+    public int LimiteMapa { get; set; } = 5;
 
     public CharacterModel(InputManager inputManager)
     {
@@ -60,7 +61,7 @@ public class CharacterModel : IDisposable
         int novaPosicao =  PosicaoPersonagem + direcao;
         EstaEmMovimento = true;
 
-        if (novaPosicao >= 0 && novaPosicao < 5)
+        if (novaPosicao >= 0 && novaPosicao < LimiteMapa)
         {
             PosicaoPersonagem = novaPosicao;
         }

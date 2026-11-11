@@ -1,8 +1,6 @@
 @page "/combat"
 @page "/combat/{GameId:int}"
-@* inicio flag *@
 @using Arthur_Showdown_Game.Services
-@*fim flag*@
 
 <Scene ImagemUrl="">
 
@@ -11,7 +9,7 @@
             @if (_pronto)
             {
                 <Arena IsLobby=@false
-                       QuantidadeTiles="5"
+                       QuantidadeTiles="Turnos.Ctx.TilesTotal"
                        PlayerStartPosition="_posInicial"
                        Inimigos="Turnos.Ctx.Inimigos" />
             }
@@ -20,14 +18,15 @@
 
     <UILayer>
         <div style="position: absolute; top: 20px; width: 100%; text-align: center;">
-            
             @if (_erro != null)
             {
                 <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">@_erro</Label>
             }
             else if (_pronto)
             {
-                <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">❤ @Turnos.Ctx.VidaAtual / @_vidaMax &nbsp;&nbsp; Turno @Turnos.Ctx.Turno</Label>
+                <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">
+                    ❤ @Turnos.Ctx.VidaAtual / @_vidaMax &nbsp;&nbsp; Sessão @_sessaoNumero/@_totalSessoes &nbsp;&nbsp; Wave @_waveNumero/@_totalWaves &nbsp;&nbsp; Turno @Turnos.Ctx.Turno
+                </Label>
             }
         </div>
 

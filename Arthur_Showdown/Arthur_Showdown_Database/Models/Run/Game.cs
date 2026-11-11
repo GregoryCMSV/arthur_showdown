@@ -26,5 +26,6 @@ namespace Arthur_Showdown_Database.Models.Run
         public Sessao? SessaoAtual { get; set; }
         public int? WaveAtualId { get; set; }
         public WaveAtual? WaveAtual { get; set; }
+        public int WaveNumero { get; set; }   // wave atual dentro da sessao (1-based, 0 = nao iniciado)
     }
 }

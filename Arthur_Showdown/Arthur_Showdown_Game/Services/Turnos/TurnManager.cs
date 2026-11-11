@@ -1,7 +1,8 @@
 using Arthur_Showdown_Game.Components.Game;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Arthur_Showdown_Game.Services;
 
@@ -20,30 +21,51 @@ public class TurnManager
         Fase = ctx.Inimigos.Count == 0 || ctx.VidaAtual <= 0 ? FaseTurno.Fim : FaseTurno.Jogador;
     }
 
+    public void MoverNaFila(CartaAtaque carta, int delta)
+    {
+        if (Fase != FaseTurno.Jogador || !carta.EmFila) return;
+        var fila = Cartas.Where(c => c.EmFila).OrderBy(c => c.PosicaoFila).ToList();
+        int idx = fila.IndexOf(carta);
+        int novo = idx + delta;
+        if (idx < 0 || novo < 0 || novo >= fila.Count) return;
+
+        (fila[idx].PosicaoFila, fila[novo].PosicaoFila) = (fila[novo].PosicaoFila, fila[idx].PosicaoFila);
+        OnMudou?.Invoke();
+        OnTurnoFinalizado?.Invoke();
+    }
+
     public async Task JogadorAgirAsync(IAcaoDeTurno acao)
     {
         if (Fase != FaseTurno.Jogador) return;
         Fase = FaseTurno.Resolvendo; OnMudou?.Invoke();
         await acao.ExecutarAsync(Ctx);
         Ctx.Inimigos.RemoveAll(i => !i.Vivo);
-        OnMudou?.Invoke();  
-        bool houveMudanca = acao.GastaTurno || acao is AtaqueAcao;
-        if (acao.GastaTurno)
-        {
+        OnMudou?.Invoke();
 
+        bool houveMudanca = acao.GastaTurno || acao is AdicionarNaFilaAcao || acao is RemoverDaFilaAcao || acao is ExecutarFilaAcao;
+        if (acao.GastaTurno && Ctx.Inimigos.Count > 0)
+        {
             var lista = new List<IAcaoDeTurno> { new AvancarFilaAcao(Cartas) };
             lista.AddRange(Ctx.Inimigos
+                .Where(i => i.Vivo)
                 .OrderBy(i => Math.Abs(i.Estado.Posicao - Ctx.Jogador.PosicaoPersonagem))
                 .Select(i => new AcaoInimigoAcao(i)));
             foreach (var a in lista)
             {
                 await a.ExecutarAsync(Ctx);
                 OnMudou?.Invoke();
-                if (Ctx.VidaAtual <= 0) { Fase = FaseTurno.Fim; OnMudou?.Invoke(); OnTurnoFinalizado?.Invoke(); return; }
+                if (Ctx.VidaAtual <= 0)
+                {
+                    Fase = FaseTurno.Fim;
+                    OnMudou?.Invoke();
+                    OnTurnoFinalizado?.Invoke();
+                    return;
+                }
             }
             Ctx.Turno++;
         }
-        Fase = Ctx.Inimigos.Count == 0 ? FaseTurno.Fim : FaseTurno.Jogador;
+
+        Fase = Ctx.Inimigos.Count == 0 || Ctx.VidaAtual <= 0 ? FaseTurno.Fim : FaseTurno.Jogador;
         OnMudou?.Invoke();
         if (houveMudanca) OnTurnoFinalizado?.Invoke();
     }

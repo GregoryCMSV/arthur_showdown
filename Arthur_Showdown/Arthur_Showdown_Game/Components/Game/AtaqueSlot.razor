@@ -1,4 +1,5 @@
-﻿<div class="ataque-slot @(Ataque.IsFastAction ? "fast-action" : "")">
+@inherits ComponentBase
+<div class="ataque-slot @(Ataque.IsFastAction ? "fast-action" : "") @(Mini ? "mini" : "") @(CooldownRestante > 0 ? "em-cooldown" : "")">
     <div class="slot-numero">@Numero</div>
     <div class="slot-imagem">
         @if (!string.IsNullOrEmpty(Ataque.ImagemUrl))
@@ -6,14 +7,18 @@
             <img src="@Ataque.ImagemUrl" alt="@Ataque.Nome" />
         }
     </div>
-    <div class="slot-cooldowns">
-        @for (int i = 0; i < Ataque.Cooldown; i++)
-        {
-            <div class="cooldown-block"></div>
-        }
-    </div>
-    <div class="ataque-tooltip">
-        <strong>@Ataque.Nome</strong>
-        <p>@Ataque.Descricao</p>
-    </div>
+    @if (!Mini)
+    {
+        <div class="slot-cooldowns">
+            @for (int i = 0; i < Ataque.Cooldown; i++)
+            {
+                int prontos = Math.Max(0, Ataque.Cooldown - CooldownRestante);
+                <div class="cooldown-block @(i < prontos ? "pronto" : "gasto")"></div>
+            }
+        </div>
+        <div class="ataque-tooltip">
+            <strong>@Ataque.Nome</strong>
+            <p>@Ataque.Descricao</p>
+        </div>
+    }
 </div>

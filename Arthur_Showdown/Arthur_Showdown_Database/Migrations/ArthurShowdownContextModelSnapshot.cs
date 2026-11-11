@@ -302,6 +302,15 @@ namespace Arthur_Showdown_Database.Migrations
                     b.Property<int>("Posicao")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("Preparado")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("RecuoPendente")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Telegrafando")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("VidaAtual")
                         .HasColumnType("integer");
 
@@ -468,6 +477,9 @@ namespace Arthur_Showdown_Database.Migrations
                     b.Property<int>("PersonagemRunId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("PosicaoFila")
+                        .HasColumnType("integer");
+
                     b.Property<int>("QtdUsosNaRun")
                         .HasColumnType("integer");
 
@@ -533,6 +545,9 @@ namespace Arthur_Showdown_Database.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("WaveAtualId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WaveNumero")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

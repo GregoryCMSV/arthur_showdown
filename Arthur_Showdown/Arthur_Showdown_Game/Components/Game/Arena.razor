@@ -3,19 +3,26 @@
     {
         <Tile Indice="i"
               IsEspecial="IsLobby && (i == 0 || i == 1 || i == 4)"
-              IsPerigo="i == 3"
+              IsPerigo="!IsLobby && Inimigos.Any(ini => ini.Vivo && ini.Telegrafando && ini.Estado.Posicao == i)"
               IsTremendo="i == TileTremendoId" />
     }
 
     <Player StartPosition="PlayerStartPosition" />
 
-    @if (InimigoAtual != null)
-    {
-    }
     @foreach (var ini in Inimigos)
     {
+        var seta = SetaMovimento(ini);
         <div class="inimigo-base" style="transform: translateX(calc(@ini.Estado.Posicao * 11.2vw));">
-            <div class="inimigo-intencao">@Intencao(ini)</div>
+            @if (ini.Preparado && ini.Ataque != null)
+            {
+                <div class="inimigo-fila">
+                    <AtaqueSlot Ataque="ini.Ataque" Numero="ini.Dano" Mini="true" />
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(seta))
+            {
+                <div class="inimigo-intencao">@seta</div>
+            }
             <div class="inimigo-visual" style="transform: scaleX(@Rumo(ini));">
                 @if (!string.IsNullOrEmpty(ini.Estado.ImagemUrl))
                 {

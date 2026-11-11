@@ -1,8 +1,5 @@
-﻿using Arthur_Showdown_Shared.Dtos.Game;
+using Arthur_Showdown_Shared.Dtos.Game;
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Arthur_Showdown_Game.Components.Game
 {
@@ -10,5 +7,7 @@ namespace Arthur_Showdown_Game.Components.Game
     {
         [Parameter, EditorRequired] public AtaqueDto Ataque { get; set; } = default!;
         [Parameter] public int Numero { get; set; }
+        [Parameter] public int CooldownRestante { get; set; }
+        [Parameter] public bool Mini { get; set; }
     }
 }

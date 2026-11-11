@@ -21,5 +21,6 @@ namespace Arthur_Showdown_Database.Models.Run
         public int QtdVezesAdicionadoFila { get; set; }
         public bool IsFastAction { get; set; }
         public int CooldownRestante { get; set; }
+        public int? PosicaoFila { get; set; }   // null = fora da fila de ataques do jogador
     }
 }

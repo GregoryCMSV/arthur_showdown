@@ -87,15 +87,17 @@ namespace Arthur_Showdown_Game.Services
             catch { return null; }
         }
 
-        public async Task<bool> SalvarEstado(int gameId, EstadoJogoDto estado)
+        public async Task<EstadoJogoDto?> SalvarEstado(int gameId, EstadoJogoDto estado)
         {
             try
             {
                 await PrepararAutenticacaoAsync();
                 var resposta = await _httpClient.PutAsJsonAsync($"/api/game/{gameId}/estado", estado);
-                return resposta.IsSuccessStatusCode;
+                if (resposta.IsSuccessStatusCode)
+                    return await resposta.Content.ReadFromJsonAsync<EstadoJogoDto>();
+                return null;
             }
-            catch { return false; }
+            catch { return null; }
         }
 
         public async Task FinalizarGame(int gameId, bool vitoria)

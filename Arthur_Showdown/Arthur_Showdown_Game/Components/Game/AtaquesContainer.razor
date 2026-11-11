@@ -1,18 +1,12 @@
-﻿<div class="ataques-root">
-    <div class="fila-painel @(_cartas.Any(c => c.EmFila) ? "visivel" : "")"
-         style="width:@(MaxCooldown * (SlotW + Gap))px">
-        @for (int i = 0; i < MaxCooldown; i++)
-        {
-            <div class="fila-casa" style="left:@(i * (SlotW + Gap))px"></div>
-        }
-    </div>
-    <div class="ataques-container" style="height:@(SlotH)px">
-        @foreach (var c in _cartas)
+<div class="ataques-root">
+    <div class="ataques-container" style="height:@(SlotH)px; width:@(Math.Max(1, _cartas.Count) * (SlotW + Gap))px">
+        @foreach (var c in _cartas.Where(c => !c.EmFila))
         {
             var (x, y) = Posicao(c);
-            <div class="carta-wrapper" style="transform:translate(@(x)px,@(y)px)"
-                 @onclick="() => Usar(c)">
-                <AtaqueSlot Ataque="c.Ataque" Numero="c.Ataque.Dano" />
+            <div class="carta-wrapper @(c.EmCooldown ? "bloqueada" : "")"
+                 style="transform:translate(@(x)px,@(y)px)"
+                 @onclick="() => Enfileirar(c)">
+                <AtaqueSlot Ataque="c.Ataque" Numero="c.Ataque.Dano" CooldownRestante="c.CooldownRestante" />
             </div>
         }
     </div>
