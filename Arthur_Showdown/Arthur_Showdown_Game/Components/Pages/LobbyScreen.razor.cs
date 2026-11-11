@@ -1,7 +1,9 @@
-﻿using Arthur_Showdown_Game.Services;
+using Arthur_Showdown_Game.Components.Game;
+using Arthur_Showdown_Game.Services;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http.Json;
-using Arthur_Showdown_Shared.Dtos.Game;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Arthur_Showdown_Game.Components.Pages;
 
@@ -9,26 +11,39 @@ public partial class LobbyScreen : ComponentBase, IDisposable
 {
     private enum ModalAberto { Nenhum, Mapa, Loja, Scoreboard }
 
-    [Inject] private ImageService _ImgService { get; set; }
-    [Inject] private InputManager _Controle { get; set; }
-    [Inject] public PlayerService _PlayerService { get; set; }
-    [Inject] public LoadingService _LoadingService { get; set; }
+    [Inject] private ImageService _ImgService { get; set; } = default!;
+    [Inject] private InputManager _Controle { get; set; } = default!;
+    [Inject] public PlayerService _PlayerService { get; set; } = default!;
+    [Inject] public LoadingService _LoadingService { get; set; } = default!;
+    [Inject] public TurnManager _Turnos { get; set; } = default!;
 
     private ModalAberto JanelaAberta = ModalAberto.Nenhum;
 
-    // --- Estado da Arena ---
     private int TileTremendoId = -1;
 
-    // --- Dados do Jogador ---
-    
     public ElementReference GameplayContainer { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await _PlayerService.LoadCharacters();
-        _Controle.AoSolicitarMovimento += ProcessarMovimento;
-        _PlayerService.CurrentCharacter.OnChange += StatusMudou;
-        _LoadingService.FinalizarCarregamento();
+        try
+        {
+            await _PlayerService.LoadCharacters();
+            if (_PlayerService.CurrentCharacter != null)
+            {
+                _PlayerService.CurrentCharacter.ModoCombate = false;
+                _PlayerService.CurrentCharacter.LimiteMapa = 5;
+                var iniciais = (_PlayerService.CurrentCharacter.GetAtaques() ?? new())
+                    .Select(a => new CartaAtaque { Ataque = a })
+                    .ToList();
+                _Turnos.ResetarParaLobby(iniciais);
+                _PlayerService.CurrentCharacter.OnChange += StatusMudou;
+            }
+            _Controle.AoSolicitarMovimento += ProcessarMovimento;
+        }
+        finally
+        {
+            _LoadingService.FinalizarCarregamento();
+        }
     }
 
     private void AbrirMapa()
@@ -53,9 +68,8 @@ public partial class LobbyScreen : ComponentBase, IDisposable
         InvokeAsync(StateHasChanged);
     }
 
-    private async void ProcessarMovimento(int direcao)
+    private void ProcessarMovimento(int direcao)
     {
-
         if (JanelaAberta != ModalAberto.Mapa)
         {
             JanelaAberta = ModalAberto.Nenhum;
@@ -93,7 +107,8 @@ public partial class LobbyScreen : ComponentBase, IDisposable
     public void Dispose()
     {
         _Controle.AoSolicitarMovimento -= ProcessarMovimento;
-        //_Controle.AoSolicitarTrocaDirecao -= ProcessarTrocaDirecao;
+        if (_PlayerService.CurrentCharacter != null)
+            _PlayerService.CurrentCharacter.OnChange -= StatusMudou;
     }
 
     private async Task FecharModal()

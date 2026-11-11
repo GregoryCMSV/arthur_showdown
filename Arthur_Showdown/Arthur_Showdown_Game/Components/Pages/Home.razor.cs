@@ -84,6 +84,9 @@ public partial class Home : ComponentBase
     private void Sair()
     {
         SecureStorage.Default.Remove("auth_token");
+        SecureStorage.Default.Remove("refresh_token");
+        SecureStorage.Default.Remove("auth_email");
+        SecureStorage.Default.Remove("auth_password");
         EstadoAtual = GameState.Autenticacao;
         jogoAtivoId = null;
         MostrarAvisoNovoJogo = false;

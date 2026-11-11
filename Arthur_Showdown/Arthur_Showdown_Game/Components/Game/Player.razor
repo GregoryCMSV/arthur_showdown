@@ -1,7 +1,9 @@
-@if (_currentCharacter != null)
+@using Arthur_Showdown_Game.Models
+@if (CurrentCharacter() != null)
 {
-    <div class="personagem-base" style="transform: translateX(calc(@_currentCharacter.PosicaoPersonagem * 11.2vw));">
-        @if (_currentCharacter.ModoCombate && FilaJogador.Any())
+    var ch = CurrentCharacter()!;
+    <div class="personagem-base" style="transform: translateX(calc(@ch.PosicaoPersonagem * 11.2vw));">
+        @if (ch.ModoCombate && FilaJogador.Any())
         {
             <div class="fila-vertical">
                 @foreach (var c in FilaJogador)
@@ -19,10 +21,10 @@
             </div>
         }
         <div class="personagem-animacao @ClasseAnimacao">
-            <div class="personagem-visual @ClasseGiro" style="transform: scaleX(@_currentCharacter.DirecaoOlhar);">
-                @if (_currentCharacter.Personagem != null && !string.IsNullOrEmpty(_currentCharacter.Personagem.ImagemUrl))
+            <div class="personagem-visual @ClasseGiro" style="transform: scaleX(@ch.DirecaoOlhar);">
+                @if (ch.Personagem != null && !string.IsNullOrEmpty(ch.Personagem.ImagemUrl))
                 {
-                    <img src="@_currentCharacter.Personagem.ImagemUrl" alt="@_currentCharacter.Personagem.Nome" style="width: 100%; height: 100%; object-fit: contain;" />
+                    <img src="@ch.Personagem.ImagemUrl" alt="@ch.Personagem.Nome" style="width: 100%; height: 100%; object-fit: contain;" />
                 }
             </div>
         </div>

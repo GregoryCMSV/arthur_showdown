@@ -1,7 +1,8 @@
-﻿using Supabase.Gotrue;
+using Supabase.Gotrue;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Arthur_Showdown_Database.Auth
 {
@@ -23,10 +24,10 @@ namespace Arthur_Showdown_Database.Auth
             var options = new SignUpOptions
             {
                 Data = new Dictionary<string, object>
-            {
-                { "tipo_usuario", tipoUsuario },
-                { "display_name", nome }
-            }
+                {
+                    { "tipo_usuario", tipoUsuario },
+                    { "display_name", nome }
+                }
             };
 
             var session = await _supabase.Auth.SignUp(email, senha, options);
@@ -43,6 +44,24 @@ namespace Arthur_Showdown_Database.Auth
             catch (Exception ex)
             {
                 throw new Exception("Erro ao fazer login: " + ex.Message);
+            }
+        }
+
+        public async Task<Session?> RenovarSessao(string accessToken, string refreshToken)
+        {
+            try
+            {
+                await _supabase.Auth.SetSession(accessToken, refreshToken, true);
+                var session = _supabase.Auth.CurrentSession;
+                if (session == null || session.AccessToken == accessToken)
+                {
+                    session = await _supabase.Auth.RefreshSession();
+                }
+                return session;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Erro ao renovar sessão: " + ex.Message);
             }
         }
     }

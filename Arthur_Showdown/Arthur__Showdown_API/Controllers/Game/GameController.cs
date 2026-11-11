@@ -432,7 +432,10 @@ namespace Arthur__Showdown_API.Controllers.Game
                         VidaAtual = chefe.Vida > 0 ? chefe.Vida : 20,
                         Posicao = posBoss,
                         CursorAcao = 0,
-                        DirecaoOlhar = dirBoss
+                        DirecaoOlhar = dirBoss,
+                        Preparado = false,
+                        Telegrafando = false,
+                        RecuoPendente = false
                     });
                     geradosIds.Add(chefe.Id);
                     await RegistrarWaveAtualAsync(game, geradosIds);
@@ -476,7 +479,10 @@ namespace Arthur__Showdown_API.Controllers.Game
                     VidaAtual = escolhido.Vida > 0 ? escolhido.Vida : 3,
                     Posicao = livres[i],
                     CursorAcao = 0,
-                    DirecaoOlhar = Random.Shared.Next(2) == 0 ? -1 : 1
+                    DirecaoOlhar = Random.Shared.Next(2) == 0 ? -1 : 1,
+                    Preparado = false,
+                    Telegrafando = false,
+                    RecuoPendente = false
                 });
                 geradosIds.Add(escolhido.Id);
             }
