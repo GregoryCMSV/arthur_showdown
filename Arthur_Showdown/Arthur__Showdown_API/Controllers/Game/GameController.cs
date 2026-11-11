@@ -185,8 +185,25 @@ namespace Arthur__Showdown_API.Controllers.Game
 
             _db.InimigosRun.RemoveRange(_db.InimigosRun.Where(i => i.GameId == id));
 
+            var sessoesLocal = await _db.Sessoes
+                .Where(s => s.LocalId == game.LocalAtualId)
+                .OrderBy(s => s.NumeroSessao)
+                .ToListAsync();
+
+            if (req.SessaoNumero > 0 && sessoesLocal.Count > 0)
+            {
+                var sessaoReq = sessoesLocal.FirstOrDefault(s => s.NumeroSessao == req.SessaoNumero);
+                if (sessaoReq != null) game.SessaoAtualId = sessaoReq.Id;
+            }
+            if (req.WaveNumero > 0) game.WaveNumero = req.WaveNumero;
+            if (req.Vitoria)
+            {
+                game.DataFim = DateTime.UtcNow;
+                game.StatusRunId = 2;
+            }
+
             var vivos = req.Inimigos.Where(i => i.VidaAtual > 0).ToList();
-            if (vivos.Count > 0 || pr.VidaAtual <= 0)
+            if (vivos.Count > 0 || pr.VidaAtual <= 0 || req.Vitoria)
             {
                 _db.InimigosRun.AddRange(vivos.Select(i => new InimigoRun
                 {
@@ -454,7 +471,17 @@ namespace Arthur__Showdown_API.Controllers.Game
             var poolIds = local?.InimigosPossiveisIds ?? new List<int>();
             var pool = poolIds.Count > 0
                 ? await _db.Personagens.Where(p => poolIds.Contains(p.Id)).ToListAsync()
-                : await _db.Personagens.Where(p => p.TipoPersonagemId == 2 && p.Id != (local != null ? local.ChefeId : null)).ToListAsync();
+                : new List<Personagem>();
+
+            if (pool.Count < 3)
+            {
+                var extras = await _db.Personagens
+                    .Where(p => p.TipoPersonagemId == 2 && p.Id != (local != null ? local.ChefeId : null))
+                    .ToListAsync();
+                foreach (var ex in extras)
+                    if (!pool.Any(x => x.Id == ex.Id))
+                        pool.Add(ex);
+            }
 
             if (pool.Count == 0)
             {
@@ -465,7 +492,7 @@ namespace Arthur__Showdown_API.Controllers.Game
 
             var livres = Enumerable.Range(0, tamanho)
                 .Where(t => t != pr.Posicao)
-                .OrderByDescending(t => Math.Abs(t - pr.Posicao))
+                .OrderBy(_ => Random.Shared.Next())
                 .ToList();
 
             int totalSpawn = Math.Min(qtd, livres.Count);
@@ -555,6 +582,8 @@ namespace Arthur__Showdown_API.Controllers.Game
                 .OrderBy(a => a.Ordem)
                 .ToListAsync();
 
+            var planoSessoes = await GerarPlanoSessoesAsync(local, sessoes, pr, deck);
+
             return new EstadoJogoDto
             {
                 GameId = game.Id,
@@ -575,6 +604,7 @@ namespace Arthur__Showdown_API.Controllers.Game
                 WaveNumero = game.WaveNumero <= 0 ? 1 : game.WaveNumero,
                 TotalWaves = Math.Max(1, totalWaves),
                 Vitoria = game.StatusRunId == 2,
+                PlanoSessoes = planoSessoes,
                 Deck = deck.Select(d => new CartaEstadoDto
                 {
                     DeckAtaquesId = d.Id,
@@ -606,6 +636,156 @@ namespace Arthur__Showdown_API.Controllers.Game
                             Ataque = a.Ataque == null ? null : AtaqueMapper.ToDto(a.Ataque)
                         }).ToList()
                 }).ToList()
+            };
+        }
+
+        private async Task<List<SessaoPlanejadaDto>> GerarPlanoSessoesAsync(
+            Local? local,
+            List<Sessao> sessoes,
+            PersonagemRun pr,
+            List<DeckAtaques> deck)
+        {
+            var resultado = new List<SessaoPlanejadaDto>();
+            if (sessoes.Count == 0) return resultado;
+
+            var sessaoIds = sessoes.Select(s => s.Id).ToList();
+            var todasWaves = await _db.Waves
+                .Where(w => sessaoIds.Contains(w.SessaoId))
+                .OrderBy(w => w.Id)
+                .ToListAsync();
+
+            var poolIds = local?.InimigosPossiveisIds ?? new List<int>();
+            var pool = poolIds.Count > 0
+                ? await _db.Personagens.Where(p => poolIds.Contains(p.Id)).ToListAsync()
+                : new List<Personagem>();
+
+            if (pool.Count < 3)
+            {
+                var extras = await _db.Personagens
+                    .Where(p => p.TipoPersonagemId == 2 && p.Id != (local != null ? local.ChefeId : null))
+                    .ToListAsync();
+                foreach (var ex in extras)
+                    if (!pool.Any(x => x.Id == ex.Id))
+                        pool.Add(ex);
+            }
+
+            Personagem? chefe = local?.ChefeId != null
+                ? await _db.Personagens.FindAsync(local.ChefeId.Value)
+                : null;
+
+            var todosInimigosIds = pool.Select(p => p.Id).ToList();
+            if (chefe != null && !todosInimigosIds.Contains(chefe.Id))
+                todosInimigosIds.Add(chefe.Id);
+
+            var todasAcoes = await _db.InimigoAcoes
+                .Include(a => a.Ataque)
+                .Where(a => todosInimigosIds.Contains(a.PersonagemId))
+                .OrderBy(a => a.Ordem)
+                .ToListAsync();
+
+            var todosAtaques = await _db.Ataques.AsNoTracking().ToListAsync();
+            var jaNoDeck = deck.Select(d => d.AtaqueId).ToHashSet();
+            var disponiveis = todosAtaques.Where(a => !jaNoDeck.Contains(a.Id)).ToList();
+            if (disponiveis.Count < 2) disponiveis = todosAtaques;
+
+            var melhorias = Enum.GetValues<TipoMelhoriaAtaque>();
+
+            foreach (var s in sessoes)
+            {
+                int tamanho = s.TamanhoMapa > 0 ? s.TamanhoMapa : 5;
+                int posRef = Math.Clamp(pr.Posicao, 0, Math.Max(0, tamanho - 1));
+                bool ehBoss = local != null && s.NumeroSessao == local.QtdSessoes && chefe != null;
+
+                var wavesSessao = todasWaves.Where(w => w.SessaoId == s.Id).ToList();
+                int qtdWaves = Math.Max(1, wavesSessao.Count);
+                var wavesPlanejadas = new List<WavePlanejadaDto>();
+
+                for (int wIdx = 0; wIdx < qtdWaves; wIdx++)
+                {
+                    int wNum = wIdx + 1;
+                    var inimigosWave = new List<InimigoEstadoDto>();
+
+                    if (ehBoss && chefe != null)
+                    {
+                        int posBoss = posRef == tamanho - 1 ? 0 : tamanho - 1;
+                        int dirBoss = Math.Sign(posRef - posBoss);
+                        if (dirBoss == 0) dirBoss = -1;
+                        inimigosWave.Add(MontarInimigoPlanejado(chefe, posBoss, dirBoss, todasAcoes));
+                    }
+                    else if (pool.Count > 0)
+                    {
+                        int qtdInimigos = wavesSessao.Count > wIdx ? wavesSessao[wIdx].QtdInimigos : 2;
+                        var livres = Enumerable.Range(0, tamanho)
+                            .Where(t => t != posRef)
+                            .OrderBy(_ => Random.Shared.Next())
+                            .ToList();
+
+                        int totalSpawn = Math.Min(qtdInimigos, livres.Count);
+                        for (int i = 0; i < totalSpawn; i++)
+                        {
+                            var escolhido = pool[Random.Shared.Next(pool.Count)];
+                            int dir = Random.Shared.Next(2) == 0 ? -1 : 1;
+                            inimigosWave.Add(MontarInimigoPlanejado(escolhido, livres[i], dir, todasAcoes));
+                        }
+                    }
+
+                    TipoMelhoriaAtaque? melhoria = wNum < qtdWaves
+                        ? melhorias[Random.Shared.Next(melhorias.Length)]
+                        : null;
+
+                    wavesPlanejadas.Add(new WavePlanejadaDto
+                    {
+                        WaveNumero = wNum,
+                        Inimigos = inimigosWave,
+                        MelhoriaAposWave = melhoria
+                    });
+                }
+
+                var opcoesNovoAtaque = disponiveis
+                    .OrderBy(_ => Random.Shared.Next())
+                    .Take(2)
+                    .Select(AtaqueMapper.ToDto)
+                    .ToList();
+
+                resultado.Add(new SessaoPlanejadaDto
+                {
+                    SessaoNumero = s.NumeroSessao,
+                    TamanhoMapa = tamanho,
+                    Waves = wavesPlanejadas,
+                    OpcoesNovoAtaqueAposSessao = opcoesNovoAtaque
+                });
+            }
+
+            return resultado;
+        }
+
+        private static InimigoEstadoDto MontarInimigoPlanejado(
+            Personagem p,
+            int pos,
+            int dir,
+            List<InimigoAcao> todasAcoes)
+        {
+            return new InimigoEstadoDto
+            {
+                PersonagemId = p.Id,
+                Nome = p.Nome,
+                ImagemUrl = p.ImagemUrl,
+                VidaAtual = p.Vida > 0 ? p.Vida : 3,
+                Posicao = pos,
+                CursorAcao = 0,
+                Direcao = dir,
+                Preparado = false,
+                Telegrafando = false,
+                RecuoPendente = false,
+                Acoes = todasAcoes
+                    .Where(a => a.PersonagemId == p.Id)
+                    .Select(a => new InimigoAcaoDto
+                    {
+                        Ordem = a.Ordem,
+                        Tipo = a.Tipo.ToString(),
+                        Valor = a.Valor,
+                        Ataque = a.Ataque == null ? null : AtaqueMapper.ToDto(a.Ataque)
+                    }).ToList()
             };
         }
     }

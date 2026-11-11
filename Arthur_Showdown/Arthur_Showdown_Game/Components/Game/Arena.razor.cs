@@ -14,6 +14,7 @@ namespace Arthur_Showdown_Game.Components.Game
         [Parameter] public int PosicaoInimigo { get; set; } = 4;
 
         [Inject] public PlayerService _PlayerService { get; set; } = default!;
+        [Inject] public TurnManager _Turnos { get; set; } = default!;
         [Parameter] public int PlayerStartPosition { get; set; } = 2;
         [Parameter] public List<InimigoEmCombate> Inimigos { get; set; } = new();
 

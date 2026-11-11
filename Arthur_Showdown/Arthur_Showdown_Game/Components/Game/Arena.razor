@@ -35,4 +35,27 @@
             <div class="inimigo-vida">@ini.Estado.VidaAtual HP</div>
         </div>
     }
+
+    @if (!IsLobby && _Turnos.Ctx?.EfeitoVisual != null)
+    {
+        var ef = _Turnos.Ctx.EfeitoVisual;
+        @foreach (var tile in ef.TilesImpacto)
+        {
+            <div class="efeito-impacto-tile" style="transform: translateX(calc(@tile * 11.2vw));">
+                <div class="forma-impacto-losango"></div>
+                <div class="forma-impacto-corte"></div>
+            </div>
+        }
+
+        @if (ef.EhFlecha)
+        {
+            <div class="efeito-flecha-proj"
+                 style="--orig: calc(@ef.OrigemTile * 11.2vw + 4vw); --dest: calc(@ef.DestinoTile * 11.2vw + 4vw);">
+                <div class="flecha-corpo" style="transform: scaleX(@(ef.Direcao >= 0 ? 1 : -1));">
+                    <div class="flecha-haste"></div>
+                    <div class="flecha-ponta"></div>
+                </div>
+            </div>
+        }
+    }
 </div>
