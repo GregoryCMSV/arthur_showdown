@@ -1,0 +1,50 @@
+@using Arthur_Showdown_Game.Services
+@implements IDisposable
+@inject InputManager Controle
+
+@if (Controle.MostrarControlesNaTela)
+{
+    <div class="touch-controls-layer" @onclick:stopPropagation="true">
+        <div class="touch-left">
+            <button type="button" class="touch-btn" title="Mover Esquerda (A)" @onclick="Controle.MoverEsquerda" tabindex="-1">
+                <span class="touch-icon">◀</span>
+                <span class="touch-label">Esq</span>
+            </button>
+            <button type="button" class="touch-btn" title="Mover Direita (D)" @onclick="Controle.MoverDireita" tabindex="-1">
+                <span class="touch-icon">▶</span>
+                <span class="touch-label">Dir</span>
+            </button>
+        </div>
+
+        <div class="touch-right-triangle">
+            <button type="button" class="touch-btn tri-top" title="Virar (W)" @onclick="Controle.TrocarDirecao" tabindex="-1">
+                <span class="touch-icon">↻</span>
+                <span class="touch-label">Virar</span>
+            </button>
+            <div class="tri-bottom-row">
+                <button type="button" class="touch-btn tri-left" title="Aguardar Turno (S)" @onclick="Controle.Esperar" tabindex="-1">
+                    <span class="touch-icon">⏳</span>
+                    <span class="touch-label">Esperar</span>
+                </button>
+                <button type="button" class="touch-btn tri-right touch-action" title="Executar Fila (Espaço)" @onclick="Controle.Interagir" tabindex="-1">
+                    <span class="touch-icon">⚔</span>
+                    <span class="touch-label">Atacar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        Controle.OnConfigMudou += Atualizar;
+    }
+
+    private void Atualizar() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Controle.OnConfigMudou -= Atualizar;
+    }
+}

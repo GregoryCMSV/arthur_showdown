@@ -53,6 +53,7 @@ public class TurnManager
             foreach (var a in lista)
             {
                 await a.ExecutarAsync(Ctx);
+                Ctx.Inimigos.RemoveAll(i => !i.Vivo);
                 OnMudou?.Invoke();
                 if (Ctx.VidaAtual <= 0)
                 {

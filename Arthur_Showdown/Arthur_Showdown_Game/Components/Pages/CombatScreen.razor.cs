@@ -74,6 +74,7 @@ namespace Arthur_Showdown_Game.Components.Pages
                 Input.AoSolicitarMovimento += AoMover;
                 Input.AoSolicitarTrocaDirecao += AoVirar;
                 Input.AoSolicitarInteracao += AoExecutarFila;
+                Input.AoSolicitarEsperar += AoEsperar;
                 _assinado = true;
 
                 IniciarRelogio();
@@ -186,6 +187,12 @@ namespace Arthur_Showdown_Game.Components.Pages
         {
             if (BloqueadoPorModal) return;
             _ = Turnos.JogadorAgirAsync(new ExecutarFilaAcao(Turnos.Cartas));
+        }
+
+        private void AoEsperar()
+        {
+            if (BloqueadoPorModal) return;
+            _ = Turnos.JogadorAgirAsync(new EsperarAcao());
         }
 
         private void AoMudar() => InvokeAsync(StateHasChanged);
@@ -323,6 +330,7 @@ namespace Arthur_Showdown_Game.Components.Pages
             Input.AoSolicitarMovimento -= AoMover;
             Input.AoSolicitarTrocaDirecao -= AoVirar;
             Input.AoSolicitarInteracao -= AoExecutarFila;
+            Input.AoSolicitarEsperar -= AoEsperar;
             if (_PlayerService.CurrentCharacter != null)
             {
                 _PlayerService.CurrentCharacter.ModoCombate = false;
