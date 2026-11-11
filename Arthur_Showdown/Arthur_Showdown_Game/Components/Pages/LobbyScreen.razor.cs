@@ -16,6 +16,7 @@ public partial class LobbyScreen : ComponentBase, IDisposable
     [Inject] public PlayerService _PlayerService { get; set; } = default!;
     [Inject] public LoadingService _LoadingService { get; set; } = default!;
     [Inject] public TurnManager _Turnos { get; set; } = default!;
+    [Inject] public SoundService _Som { get; set; } = default!;
 
     private ModalAberto JanelaAberta = ModalAberto.Nenhum;
 
@@ -39,6 +40,7 @@ public partial class LobbyScreen : ComponentBase, IDisposable
                 _PlayerService.CurrentCharacter.OnChange += StatusMudou;
             }
             _Controle.AoSolicitarMovimento += ProcessarMovimento;
+            _ = _Som.IniciarMusicaAsync();
         }
         finally
         {
@@ -59,6 +61,7 @@ public partial class LobbyScreen : ComponentBase, IDisposable
         if (charModel.EstaEmMovimento)
         {
             JanelaAberta = ModalAberto.Nenhum;
+            _ = _Som.TocarMovimentoAsync();
         }
         else
         {

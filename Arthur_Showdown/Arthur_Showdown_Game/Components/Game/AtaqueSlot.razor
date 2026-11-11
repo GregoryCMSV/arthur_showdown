@@ -1,3 +1,5 @@
+@using Arthur_Showdown_Shared.Dtos.Game
+@using System.Linq
 @inherits ComponentBase
 <div class="ataque-slot @(Ataque.IsFastAction ? "fast-action" : "") @(Mini ? "mini" : "") @(CooldownRestante > 0 ? "em-cooldown" : "")">
     <div class="slot-numero">@Numero</div>
@@ -13,6 +15,20 @@
     </div>
     @if (!Mini)
     {
+        <div class="slot-efeitos">
+            @if (Ataque.PossuiEfeito(1))
+            {
+                <span class="efeito-badge maldicao" title="Efeito: Maldição"></span>
+            }
+            @if (Ataque.PossuiEfeito(2))
+            {
+                <span class="efeito-badge espelho" title="Efeito: Espelho"></span>
+            }
+            @if (Ataque.PossuiEfeito(3))
+            {
+                <span class="efeito-badge escudo" title="Efeito: Escudo"></span>
+            }
+        </div>
         <div class="slot-cooldowns">
             @for (int i = 0; i < Ataque.Cooldown; i++)
             {
@@ -23,6 +39,13 @@
         <div class="ataque-tooltip">
             <strong>@Ataque.Nome</strong>
             <p>@Ataque.Descricao</p>
+            @if (Ataque.PossuiEfeito(1) || Ataque.PossuiEfeito(2) || Ataque.PossuiEfeito(3))
+            {
+                <p style="color:#ffd166; margin-top:4px; font-size:12px;">
+                    Efeitos:
+                    @string.Join(", ", new[] { 1, 2, 3 }.Where(id => Ataque.PossuiEfeito(id)).Select(AtaqueDto.NomeEfeito))
+                </p>
+            }
         </div>
     }
 </div>

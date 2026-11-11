@@ -20,7 +20,10 @@ public class TurnManager
         Ctx = ctx;
         Cartas = cartas;
         Fase = ctx.Inimigos.Count == 0 || ctx.VidaAtual <= 0 ? FaseTurno.Fim : FaseTurno.Jogador;
+        OnMudou?.Invoke();
     }
+
+    public void NotificarMudanca() => OnMudou?.Invoke();
 
     public void ResetarParaLobby(List<CartaAtaque> cartasIniciais)
     {
@@ -62,7 +65,12 @@ public class TurnManager
         OnMudou?.Invoke();
 
         bool houveMudanca = acao.GastaTurno || acao is AdicionarNaFilaAcao || acao is RemoverDaFilaAcao || acao is ExecutarFilaAcao;
-        if (acao.GastaTurno && Ctx.Inimigos.Count > 0)
+        if (acao.GastaTurno && Ctx.Inimigos.Count == 0)
+        {
+            await new AvancarFilaAcao(Cartas).ExecutarAsync(Ctx);
+            OnMudou?.Invoke();
+        }
+        else if (acao.GastaTurno && Ctx.Inimigos.Count > 0)
         {
             var lista = new List<IAcaoDeTurno> { new AvancarFilaAcao(Cartas) };
             lista.AddRange(Ctx.Inimigos

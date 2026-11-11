@@ -35,6 +35,18 @@ public class InimigoEmCombate
         set => Estado.RecuoPendente = value;
     }
 
+    public bool Amaldicoado
+    {
+        get => Estado.Amaldicoado;
+        set => Estado.Amaldicoado = value;
+    }
+
+    public bool EfeitoEspelhoAtivo
+    {
+        get => Estado.EfeitoEspelhoAtivo;
+        set => Estado.EfeitoEspelhoAtivo = value;
+    }
+
     private InimigoAcaoDto? AcaoAtacar => Fila.FirstOrDefault(a => a.Tipo == "Atacar");
 
     public List<AtaqueDto> AtaquesNaFila => Fila
@@ -43,9 +55,18 @@ public class InimigoEmCombate
         {
             if (a.Ataque != null)
             {
-                if (string.IsNullOrEmpty(a.Ataque.ImagemUrl))
-                    a.Ataque.ImagemUrl = Estado.ImagemUrl;
-                return a.Ataque;
+                return new AtaqueDto
+                {
+                    Id = a.Ataque.Id,
+                    Nome = a.Ataque.Nome,
+                    Descricao = a.Ataque.Descricao,
+                    Dano = a.Ataque.Dano,
+                    Cooldown = 0,
+                    IsFastAction = false,
+                    LimiteAprimoramento = a.Ataque.LimiteAprimoramento,
+                    HitboxJson = a.Ataque.HitboxJson,
+                    ImagemUrl = string.IsNullOrEmpty(a.Ataque.ImagemUrl) ? Estado.ImagemUrl : a.Ataque.ImagemUrl
+                };
             }
             return new AtaqueDto
             {
@@ -66,6 +87,8 @@ public class InimigoEmCombate
     public int Dano => AcaoAtacar?.Ataque?.Dano ?? AcaoAtacar?.Valor ?? 2;
     public int RecuoAposAtaque => Fila.FirstOrDefault(a => a.Tipo == "RecuarAposAtaque")?.Valor ?? 0;
     public int RecuoSeProximo => Fila.FirstOrDefault(a => a.Tipo == "RecuarSeProximo")?.Valor ?? 0;
+    public int InvocarAposAtaque => Fila.FirstOrDefault(a => a.Tipo == "InvocarAposAtaque")?.Valor
+        ?? (Estado.Nome.Contains("Tank", StringComparison.OrdinalIgnoreCase) ? 2 : 0);
 
     public InimigoAcaoDto? Proxima => Fila.Count == 0 ? null : Fila[Estado.CursorAcao % Fila.Count];
 
@@ -74,5 +97,12 @@ public class InimigoEmCombate
         if (Fila.Count > 0) Estado.CursorAcao = (Estado.CursorAcao + 1) % Fila.Count;
     }
 
-    public void ReceberDano(int d) => Estado.VidaAtual = Math.Max(0, Estado.VidaAtual - d);
+    public void ReceberDano(int d)
+    {
+        if (d <= 0) return;
+        int danoFinal = Estado.Amaldicoado ? d * 2 : d;
+        if (Estado.Amaldicoado)
+            Estado.Amaldicoado = false;
+        Estado.VidaAtual = Math.Max(0, Estado.VidaAtual - danoFinal);
+    }
 }

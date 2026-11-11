@@ -82,6 +82,33 @@
     justify-content: center;
 }
 
+.slot-efeitos {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    gap: 3px;
+}
+
+.efeito-badge {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1px solid #fff;
+}
+
+    .efeito-badge.maldicao {
+        background-color: #ef233c;
+    }
+
+    .efeito-badge.espelho {
+        background: linear-gradient(135deg, #008cff, #00e682);
+    }
+
+    .efeito-badge.escudo {
+        background-color: #3caaff;
+    }
+
 .cooldown-block {
     width: 12px;
     height: 4px;

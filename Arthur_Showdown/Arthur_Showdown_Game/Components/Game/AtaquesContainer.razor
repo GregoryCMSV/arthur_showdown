@@ -3,7 +3,7 @@
         @foreach (var c in _cartas.Where(c => !c.EmFila))
         {
             var (x, y) = Posicao(c);
-            <div class="carta-wrapper @(c.EmCooldown ? "bloqueada" : "")"
+            <div @key="c" class="carta-wrapper @(c.EmCooldown ? "bloqueada" : "")"
                  style="transform:translate(@(x)px,@(y)px)"
                  @onclick="() => Enfileirar(c)">
                 <AtaqueSlot Ataque="c.Ataque" Numero="c.Ataque.Dano" CooldownRestante="c.CooldownRestante" />

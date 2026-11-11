@@ -8,7 +8,7 @@
             <div class="fila-vertical">
                 @foreach (var c in FilaJogador)
                 {
-                    <div class="fila-item">
+                    <div @key="c" class="fila-item">
                         <div class="fila-controles">
                             <button type="button" class="fila-btn" title="Subir visualmente" @onclick="() => MoverFila(c, 1)" @onclick:stopPropagation="true">▲</button>
                             <button type="button" class="fila-btn" title="Descer visualmente" @onclick="() => MoverFila(c, -1)" @onclick:stopPropagation="true">▼</button>
@@ -28,5 +28,9 @@
                 }
             </div>
         </div>
+        @if (ch.ModoCombate && _Turnos.Ctx?.EscudoAtivo == true)
+        {
+            <div class="efeito-escudo-elipse"></div>
+        }
     </div>
 }

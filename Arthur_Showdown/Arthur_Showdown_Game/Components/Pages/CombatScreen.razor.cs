@@ -21,12 +21,14 @@ namespace Arthur_Showdown_Game.Components.Pages
         [Inject] public PlayerService _PlayerService { get; set; } = default!;
         [Inject] public InputManager Input { get; set; } = default!;
         [Inject] public TurnManager Turnos { get; set; } = default!;
+        [Inject] public SoundService Som { get; set; } = default!;
 
         private int _gameId;
         private int _vidaMax = 10;
         private int _ouro;
         private int _totalOuroGanho;
         private int _localId;
+        private string _backgroundUrl = "https://cqzgfbtcmybebeqpomgv.supabase.co/storage/v1/object/public/game-assets/BG/BGFloresta.png";
         private int _posInicial = 1;
         private int _sessaoNumero = 1;
         private int _totalSessoes = 3;
@@ -95,6 +97,7 @@ namespace Arthur_Showdown_Game.Components.Pages
                 _assinado = true;
 
                 IniciarRelogio();
+                _ = Som.IniciarMusicaAsync();
                 _pronto = true;
             }
             catch (Exception ex)
@@ -137,7 +140,18 @@ namespace Arthur_Showdown_Game.Components.Pages
             TipoMelhoriaAtaque.MaisDoisDanoMaisUmCooldown => "Melhoria sorteada: +2 de Dano e +1 de Cooldown no golpe selecionado",
             TipoMelhoriaAtaque.MenosUmCooldown => "Melhoria sorteada: -1 de Cooldown no golpe selecionado",
             TipoMelhoriaAtaque.AcaoRapida => "Melhoria sorteada: Transformar o golpe selecionado em Ação Rápida",
+            TipoMelhoriaAtaque.EfeitoMaldicao => "Melhoria sorteada: Adicionar efeito de Maldição (dobro de dano no próximo ataque)",
+            TipoMelhoriaAtaque.EfeitoEspelho => "Melhoria sorteada: Adicionar efeito de Espelho (vira o alvo para o lado contrário)",
+            TipoMelhoriaAtaque.EfeitoEscudo => "Melhoria sorteada: Adicionar efeito de Escudo (ignora o primeiro dano recebido)",
             _ => ""
+        };
+
+        private static bool PodeReceberMelhoria(CartaAtaque c, TipoMelhoriaAtaque tipo) => tipo switch
+        {
+            TipoMelhoriaAtaque.EfeitoMaldicao => c.Ataque.EfeitoAdicionalId == null && !c.Ataque.PossuiEfeito(1),
+            TipoMelhoriaAtaque.EfeitoEspelho => c.Ataque.EfeitoAdicionalId == null && !c.Ataque.PossuiEfeito(2),
+            TipoMelhoriaAtaque.EfeitoEscudo => c.Ataque.EfeitoAdicionalId == null && !c.Ataque.PossuiEfeito(3),
+            _ => true
         };
 
         private void AplicarEstado(CharacterModel model, EstadoJogoDto estado)
@@ -148,6 +162,8 @@ namespace Arthur_Showdown_Game.Components.Pages
             _ouro = estado.OuroAtual;
             _totalOuroGanho = Math.Max(_totalOuroGanho, estado.TotalOuroGanho);
             _localId = estado.LocalAtualId;
+            if (!string.IsNullOrWhiteSpace(estado.LocalImagemUrl))
+                _backgroundUrl = estado.LocalImagemUrl;
             _posInicial = estado.Posicao;
             _sessaoNumero = estado.SessaoNumero > 0 ? estado.SessaoNumero : 1;
             _totalSessoes = estado.TotalSessoes > 0 ? estado.TotalSessoes : 3;
@@ -162,15 +178,20 @@ namespace Arthur_Showdown_Game.Components.Pages
 
             var cartas = estado.Deck
                 .Where(d => d.Ataque != null)
-                .Select(d => new CartaAtaque
+                .Select(d =>
                 {
-                    DeckAtaquesId = d.DeckAtaquesId,
-                    CooldownRestante = d.CooldownRestante,
-                    PosicaoFila = d.PosicaoFila,
-                    QtdUsosNaRun = d.QtdUsosNaRun,
-                    QtdVezesAdicionadoFila = d.QtdVezesAdicionadoFila,
-                    QtdVezesRemovidoFila = d.QtdVezesRemovidoFila,
-                    Ataque = d.Ataque!
+                    d.Ataque!.EfeitoPadraoId = d.Ataque.ObterEfeitoPadraoEfetivo();
+                    d.Ataque.EfeitoAdicionalId ??= d.EfeitoId;
+                    return new CartaAtaque
+                    {
+                        DeckAtaquesId = d.DeckAtaquesId,
+                        CooldownRestante = d.CooldownRestante,
+                        PosicaoFila = d.PosicaoFila,
+                        QtdUsosNaRun = d.QtdUsosNaRun,
+                        QtdVezesAdicionadoFila = d.QtdVezesAdicionadoFila,
+                        QtdVezesRemovidoFila = d.QtdVezesRemovidoFila,
+                        Ataque = d.Ataque!
+                    };
                 }).ToList();
 
             var inimigos = estado.Inimigos.Select(i =>
@@ -193,7 +214,10 @@ namespace Arthur_Showdown_Game.Components.Pages
                 TilesTotal = tiles,
                 QtdMudancaDirecao = estado.QtdMudancaDirecao,
                 QtdHitsSofridos = estado.QtdHitsSofridos,
-                Inimigos = inimigos
+                Inimigos = inimigos,
+                PoolInimigosInvocacao = ObterPoolInvocacao(),
+                TocarSomHit = ehFlecha => _ = Som.TocarHitAsync(ehFlecha),
+                TocarSomMovimento = () => _ = Som.TocarMovimentoAsync()
             }, cartas);
         }
 
@@ -261,8 +285,13 @@ namespace Arthur_Showdown_Game.Components.Pages
 
                 if (_waveNumero < _totalWaves)
                 {
-                    var valores = Enum.GetValues<TipoMelhoriaAtaque>();
-                    _melhoriaSorteada = wavePlanAtual?.MelhoriaAposWave ?? valores[Random.Shared.Next(valores.Length)];
+                    var possiveis = Enum.GetValues<TipoMelhoriaAtaque>()
+                        .Where(m => Turnos.Cartas.Any(c => PodeReceberMelhoria(c, m)))
+                        .ToArray();
+                    if (possiveis.Length == 0)
+                        possiveis = new[] { TipoMelhoriaAtaque.MaisUmDano };
+
+                    _melhoriaSorteada = possiveis[Random.Shared.Next(possiveis.Length)];
                     _escolhendoMelhoria = true;
                     _ = InvokeAsync(StateHasChanged);
                 }
@@ -300,6 +329,7 @@ namespace Arthur_Showdown_Game.Components.Pages
             AplicarMelhoriaNaCarta(c, _melhoriaSorteada);
 
             AvancarParaProximaWaveDoPlano(mudouSessao: false);
+            Turnos.NotificarMudanca();
             await InvokeAsync(StateHasChanged);
 
             var snap = GerarSnapshot();
@@ -320,10 +350,24 @@ namespace Arthur_Showdown_Game.Components.Pages
                 DeckAtaquesId = Turnos.Cartas.Count + 1,
                 CooldownRestante = 0,
                 PosicaoFila = null,
-                Ataque = atk
+                Ataque = new AtaqueDto
+                {
+                    Id = atk.Id,
+                    Nome = atk.Nome,
+                    Descricao = atk.Descricao,
+                    Dano = atk.Dano,
+                    Cooldown = atk.Cooldown,
+                    IsFastAction = atk.IsFastAction,
+                    LimiteAprimoramento = atk.LimiteAprimoramento,
+                    EfeitoPadraoId = atk.ObterEfeitoPadraoEfetivo(),
+                    EfeitoAdicionalId = atk.EfeitoAdicionalId,
+                    HitboxJson = atk.HitboxJson,
+                    ImagemUrl = atk.ImagemUrl
+                }
             });
 
             AvancarParaProximaWaveDoPlano(mudouSessao: true);
+            Turnos.NotificarMudanca();
             await InvokeAsync(StateHasChanged);
 
             var snap = GerarSnapshot();
@@ -381,8 +425,34 @@ namespace Arthur_Showdown_Game.Components.Pages
                 TilesTotal = tamanho,
                 QtdMudancaDirecao = Turnos.Ctx.QtdMudancaDirecao,
                 QtdHitsSofridos = Turnos.Ctx.QtdHitsSofridos,
-                Inimigos = inimigosCombate
+                EscudoAtivo = !mudouSessao && Turnos.Ctx.EscudoAtivo,
+                Inimigos = inimigosCombate,
+                PoolInimigosInvocacao = ObterPoolInvocacao(),
+                TocarSomHit = ehFlecha => _ = Som.TocarHitAsync(ehFlecha),
+                TocarSomMovimento = () => _ = Som.TocarMovimentoAsync()
             }, Turnos.Cartas);
+        }
+
+        private List<InimigoEstadoDto> ObterPoolInvocacao()
+        {
+            var pool = _planoSessoes
+                .Where(s => s.SessaoNumero < _totalSessoes)
+                .SelectMany(s => s.Waves)
+                .SelectMany(w => w.Inimigos)
+                .Where(i => !i.Nome.Contains("Tank", StringComparison.OrdinalIgnoreCase))
+                .GroupBy(i => i.Nome)
+                .Select(g => g.First())
+                .ToList();
+
+            string[] padrao = { "Esqueleto", "Arqueiro", "Lanceiro" };
+            foreach (var nome in padrao)
+            {
+                if (!pool.Any(p => p.Nome.Equals(nome, StringComparison.OrdinalIgnoreCase)))
+                {
+                    pool.Add(CriarInimigoFallback(nome, nome == "Lanceiro" ? 4 : 3, 0, 1));
+                }
+            }
+            return pool;
         }
 
         private static List<InimigoEstadoDto> RealocarInimigosAleatorios(
@@ -446,29 +516,70 @@ namespace Arthur_Showdown_Game.Components.Pages
 
         private static void AplicarMelhoriaNaCarta(CartaAtaque c, TipoMelhoriaAtaque tipo)
         {
+            var novoAtaque = new AtaqueDto
+            {
+                Id = c.Ataque.Id,
+                Nome = c.Ataque.Nome,
+                Descricao = c.Ataque.Descricao,
+                Dano = c.Ataque.Dano,
+                Cooldown = c.Ataque.Cooldown,
+                IsFastAction = c.Ataque.IsFastAction,
+                LimiteAprimoramento = c.Ataque.LimiteAprimoramento,
+                EfeitoPadraoId = c.Ataque.ObterEfeitoPadraoEfetivo(),
+                EfeitoAdicionalId = c.Ataque.EfeitoAdicionalId,
+                HitboxJson = c.Ataque.HitboxJson,
+                ImagemUrl = c.Ataque.ImagemUrl
+            };
+
             switch (tipo)
             {
                 case TipoMelhoriaAtaque.MaisUmDano:
-                    c.Ataque.Dano += 1;
+                    novoAtaque.Dano += 1;
                     break;
                 case TipoMelhoriaAtaque.MaisDoisDanoMaisUmCooldown:
-                    c.Ataque.Dano += 2;
-                    c.Ataque.Cooldown += 1;
+                    novoAtaque.Dano += 2;
+                    novoAtaque.Cooldown += 1;
                     break;
                 case TipoMelhoriaAtaque.MenosUmCooldown:
-                    c.Ataque.Cooldown = Math.Max(0, c.Ataque.Cooldown - 1);
+                    novoAtaque.Cooldown = Math.Max(0, novoAtaque.Cooldown - 1);
+                    c.CooldownRestante = Math.Min(c.CooldownRestante, novoAtaque.Cooldown);
                     break;
                 case TipoMelhoriaAtaque.AcaoRapida:
-                    c.Ataque.IsFastAction = true;
+                    novoAtaque.IsFastAction = true;
+                    break;
+                case TipoMelhoriaAtaque.EfeitoMaldicao:
+                    if (novoAtaque.EfeitoAdicionalId == null && !novoAtaque.PossuiEfeito(1))
+                        novoAtaque.EfeitoAdicionalId = 1;
+                    break;
+                case TipoMelhoriaAtaque.EfeitoEspelho:
+                    if (novoAtaque.EfeitoAdicionalId == null && !novoAtaque.PossuiEfeito(2))
+                        novoAtaque.EfeitoAdicionalId = 2;
+                    break;
+                case TipoMelhoriaAtaque.EfeitoEscudo:
+                    if (novoAtaque.EfeitoAdicionalId == null && !novoAtaque.PossuiEfeito(3))
+                        novoAtaque.EfeitoAdicionalId = 3;
                     break;
             }
+
+            c.Ataque = novoAtaque;
         }
 
-        private static List<AtaqueDto> ObterOpcoesAtaqueFallback() => new()
+        private static List<AtaqueDto> ObterOpcoesAtaqueFallback()
         {
-            new AtaqueDto { Id = 101, Nome = "Estocada Rápida", Descricao = "Ataque de 2 células à frente", Dano = 2, Cooldown = 1, IsFastAction = true, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":2}" },
-            new AtaqueDto { Id = 102, Nome = "Golpe Pesado", Descricao = "Golpe devastador a 1 célula", Dano = 4, Cooldown = 2, IsFastAction = false, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":1}" }
-        };
+            var todos = new List<AtaqueDto>
+            {
+                new AtaqueDto { Id = 8, Nome = "Ataque duplo", Descricao = "Ataca os espaços adjacentes", Dano = 2, Cooldown = 3, IsFastAction = false, HitboxJson = "{\"Origem\":0,\"Direcao\":2,\"AlcanceMin\":1,\"AlcanceMax\":1}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tiles_swirl.png?16666f&20240924201144" },
+                new AtaqueDto { Id = 13, Nome = "Raio", Descricao = "Dispara um raio no inimigo mais distante", Dano = 3, Cooldown = 4, IsFastAction = false, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":99}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tiles_lightning.png?a16c74&20240924201128" },
+                new AtaqueDto { Id = 9, Nome = "Shuriken", Descricao = "Acerta o primeiro alvo a frente", Dano = 1, Cooldown = 3, IsFastAction = false, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":99}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tiles_shuriken.png?47f47b&20240924201137" },
+                new AtaqueDto { Id = 12, Nome = "Bomba de fumaça", Descricao = "Troca de posição com o alvo a frente", Dano = 0, Cooldown = 5, IsFastAction = true, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":1}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tiles_smokeBomb.png?cac86d&20240924201139" },
+                new AtaqueDto { Id = 7, Nome = "Bomba de fumaça costas", Descricao = "Troca de posição com o alvo atrás", Dano = 0, Cooldown = 5, IsFastAction = true, HitboxJson = "{\"Origem\":0,\"Direcao\":1,\"AlcanceMin\":1,\"AlcanceMax\":1}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tiles_back_Smoke_Bom2.png?2bf901" },
+                new AtaqueDto { Id = 10, Nome = "Amaldiçoar", Descricao = "Amaldiçoa o alvo a frente, fazendo ele receber o dobro de dano do próximo ataque", Dano = 0, Cooldown = 5, IsFastAction = true, EfeitoPadraoId = 1, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":1,\"AlcanceMax\":1}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tiles_mark.png?411e2e&20240924201130" },
+                new AtaqueDto { Id = 14, Nome = "Virar", Descricao = "Vira para o lado oposto", Dano = 0, Cooldown = 3, IsFastAction = true, HitboxJson = "{\"Origem\":0,\"Direcao\":0,\"AlcanceMin\":0,\"AlcanceMax\":0}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tile_Sharp_Turn.png?81ae49&20240924201515" },
+                new AtaqueDto { Id = 15, Nome = "Ataque nas costas", Descricao = "Ataca o alvo diretamente atrás", Dano = 3, Cooldown = 3, IsFastAction = false, HitboxJson = "{\"Origem\":0,\"Direcao\":1,\"AlcanceMin\":1,\"AlcanceMax\":1}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/Tiles_backStrike.png?80b1a6&20240924201109" },
+                new AtaqueDto { Id = 11, Nome = "Espelho do lago", Descricao = "Vira todos os inimigos para o lado contrário", Dano = 0, Cooldown = 5, IsFastAction = true, EfeitoPadraoId = 2, HitboxJson = "{\"Origem\":0,\"Direcao\":2,\"AlcanceMin\":1,\"AlcanceMax\":99}", ImagemUrl = "https://shogunshowdown.wiki.gg/images/RainOfMirrors.png?71e858" }
+            };
+            return todos.OrderBy(_ => Random.Shared.Next()).Take(2).ToList();
+        }
 
         private static List<SessaoPlanejadaDto> GerarPlanoCompletoFallback(int posJog)
         {
@@ -567,6 +678,8 @@ namespace Arthur_Showdown_Game.Components.Pages
             };
             if (!string.IsNullOrEmpty(recuoTipo))
                 acoes.Add(new InimigoAcaoDto { Ordem = 1, Tipo = recuoTipo, Valor = 1 });
+            if (nome == "Tank")
+                acoes.Add(new InimigoAcaoDto { Ordem = 1, Tipo = "InvocarAposAtaque", Valor = 2 });
 
             return new InimigoEstadoDto
             {
@@ -614,7 +727,8 @@ namespace Arthur_Showdown_Game.Components.Pages
                     PosicaoFila = c.PosicaoFila,
                     QtdUsosNaRun = c.QtdUsosNaRun,
                     QtdVezesAdicionadoFila = c.QtdVezesAdicionadoFila,
-                    QtdVezesRemovidoFila = c.QtdVezesRemovidoFila
+                    QtdVezesRemovidoFila = c.QtdVezesRemovidoFila,
+                    EfeitoId = c.Ataque.EfeitoAdicionalId
                 }).ToList(),
                 Inimigos = ctx.Inimigos.Where(i => i.Vivo).Select(i => i.Estado).ToList()
             };

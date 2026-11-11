@@ -11,6 +11,7 @@ public class MoverAcao(int dir) : IAcaoDeTurno
             || ctx.Inimigos.Any(i => i.Vivo && i.Estado.Posicao == destino);
         if (bloqueado) return;
         _valido = true;
+        ctx.TocarSomMovimento?.Invoke();
         await ctx.Jogador.MoverAsync(dir);
     }
 }

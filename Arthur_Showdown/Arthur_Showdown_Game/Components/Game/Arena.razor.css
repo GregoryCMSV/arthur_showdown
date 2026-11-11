@@ -25,7 +25,39 @@
         height: 100%;
         object-fit: contain;
         image-rendering: pixelated;
+        transition: filter 0.2s ease;
     }
+
+    .inimigo-visual.amaldicoado img {
+        filter: sepia(1) saturate(6) hue-rotate(-48deg) brightness(0.92) drop-shadow(0 0 10px rgba(239, 35, 60, 0.9));
+    }
+
+.efeito-espelho-quadrado {
+    position: absolute;
+    inset: 6% 8%;
+    background: linear-gradient(135deg, rgba(0, 140, 255, 0.78), rgba(0, 230, 130, 0.78));
+    border: 2px solid rgba(190, 255, 240, 0.95);
+    border-radius: 6px;
+    box-shadow: 0 0 14px rgba(0, 210, 180, 0.85);
+    pointer-events: none;
+    z-index: 25;
+    animation: espelho-pulso 0.32s ease-in-out forwards;
+}
+
+@keyframes espelho-pulso {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.95;
+    }
+    50% {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+}
 
 .inimigo-intencao {
     position: absolute;

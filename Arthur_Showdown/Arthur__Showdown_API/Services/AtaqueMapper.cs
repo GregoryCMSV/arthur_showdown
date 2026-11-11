@@ -18,6 +18,7 @@ namespace Arthur__Showdown_API.Services
             Cooldown = a.Cooldown,
             IsFastAction = a.IsFastAction,
             LimiteAprimoramento = a.LimiteAprimoramento,
+            EfeitoPadraoId = a.EfeitoId,
             HitboxJson = JsonSerializer.Serialize(a.Hitbox)
         };
 
@@ -34,6 +35,8 @@ namespace Arthur__Showdown_API.Services
                 Cooldown = Math.Max(0, a.Cooldown + d.ModCooldown),
                 IsFastAction = d.IsFastAction || a.IsFastAction,
                 LimiteAprimoramento = d.LimiteUpgrade > 0 ? d.LimiteUpgrade : a.LimiteAprimoramento,
+                EfeitoPadraoId = a.EfeitoId,
+                EfeitoAdicionalId = d.EfeitoId,
                 HitboxJson = JsonSerializer.Serialize(a.Hitbox)
             };
         }

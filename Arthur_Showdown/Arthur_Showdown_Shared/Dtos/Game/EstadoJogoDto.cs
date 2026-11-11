@@ -7,7 +7,10 @@ namespace Arthur_Showdown_Shared.Dtos.Game
         MaisUmDano = 1,
         MaisDoisDanoMaisUmCooldown = 2,
         MenosUmCooldown = 3,
-        AcaoRapida = 4
+        AcaoRapida = 4,
+        EfeitoMaldicao = 5,
+        EfeitoEspelho = 6,
+        EfeitoEscudo = 7
     }
 
     public class AplicarMelhoriaRequest
@@ -42,6 +45,7 @@ namespace Arthur_Showdown_Shared.Dtos.Game
         public int OuroAtual { get; set; }
         public int TotalOuroGanho { get; set; }
         public int LocalAtualId { get; set; }
+        public string? LocalImagemUrl { get; set; }
         public int Turno { get; set; }
         public int TempoSegundos { get; set; }
         public int QtdMudancaDirecao { get; set; }
