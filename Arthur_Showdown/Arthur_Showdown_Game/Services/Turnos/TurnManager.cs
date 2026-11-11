@@ -16,6 +16,7 @@ public class TurnManager
 
     public void Iniciar(BatalhaContexto ctx, List<CartaAtaque> cartas)
     {
+        ctx.NotificarVisual = () => OnMudou?.Invoke();
         Ctx = ctx;
         Cartas = cartas;
         Fase = ctx.Inimigos.Count == 0 || ctx.VidaAtual <= 0 ? FaseTurno.Fim : FaseTurno.Jogador;

@@ -21,6 +21,21 @@ namespace Arthur_Showdown_Shared.Dtos.Game
         public int AtaqueId { get; set; }
     }
 
+    public class WavePlanejadaDto
+    {
+        public int WaveNumero { get; set; }
+        public List<InimigoEstadoDto> Inimigos { get; set; } = new();
+        public TipoMelhoriaAtaque? MelhoriaAposWave { get; set; }
+    }
+
+    public class SessaoPlanejadaDto
+    {
+        public int SessaoNumero { get; set; }
+        public int TamanhoMapa { get; set; } = 5;
+        public List<WavePlanejadaDto> Waves { get; set; } = new();
+        public List<AtaqueDto> OpcoesNovoAtaqueAposSessao { get; set; } = new();
+    }
+
     public class EstadoJogoDto
     {
         public int GameId { get; set; }
@@ -43,5 +58,6 @@ namespace Arthur_Showdown_Shared.Dtos.Game
         public bool Vitoria { get; set; }
         public List<CartaEstadoDto> Deck { get; set; } = new();
         public List<InimigoEstadoDto> Inimigos { get; set; } = new();
+        public List<SessaoPlanejadaDto> PlanoSessoes { get; set; } = new();
     }
 }
