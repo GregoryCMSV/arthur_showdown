@@ -1,4 +1,4 @@
-﻿@page "/lobby"
+@page "/lobby"
 
 <Scene ImagemUrl="@_ImgService.ObterBackgroundLobby()">
 
@@ -20,6 +20,8 @@
                 <AtaquesContainer/>
             }
         </div>
+
+        <TouchControls />
 
         @if (JanelaAberta == ModalAberto.Mapa)
         {

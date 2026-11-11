@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 
 <Scene ImagemUrl="@ImgService.ObterBackgroundLogin()" OnClick="TentarPassarDaTelaInicial">
     <UILayer>
@@ -22,13 +22,26 @@
             {
                 @if (MostrarAvisoNovoJogo)
                 {
-                    <div class="aviso">
+                    <div class="aviso" @onclick:stopPropagation="true">
                         <Label Tamanho="60px" Cor="#ff4d4d">Atenção!</Label>
                         <Label Tamanho="40px" Cor="#ffffff">
                             Você tem um jogo em andamento. Iniciar um novo jogo apagará seu progresso atual. Deseja continuar?
                         </Label>
                         <button class="btn-sim" @onclick="ConfirmarSobrescreverJogo">Sim</button>
                         <button class="btn-nao" @onclick="() => MostrarAvisoNovoJogo = false">Não</button>
+                    </div>
+                }
+                else if (MostrarOpcoes)
+                {
+                    <div class="aviso" @onclick:stopPropagation="true">
+                        <Label Tamanho="60px" Cor="#ffd166">Opções</Label>
+                        <Label Tamanho="34px" Cor="#ffffff" Margem="20px 0">
+                            Controles na tela (Mobile / Teste PC): @(Input.MostrarControlesNaTela ? "Ativado" : "Desativado")
+                        </Label>
+                        <button class="btn-sim" @onclick="Input.AlternarControlesNaTela">
+                            @(Input.MostrarControlesNaTela ? "Ocultar Controles na Tela" : "Exibir Controles na Tela")
+                        </button>
+                        <button class="btn-nao" @onclick="() => MostrarOpcoes = false">Voltar</button>
                     </div>
                 }
                 else
@@ -47,9 +60,3 @@
         </div>
     </UILayer>
 </Scene>
-
-
-
-
-
-

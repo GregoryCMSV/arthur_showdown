@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Arthur_Showdown_Game.Services;
@@ -8,6 +9,8 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
     public bool GastaTurno => false;
     public async Task ExecutarAsync(BatalhaContexto ctx)
     {
+        if (!inimigo.Vivo) return;
+
         var posJogador = ctx.Jogador.PosicaoPersonagem;
         int rumo = InimigoIA.Rumo(inimigo, posJogador);
         var decisao = InimigoIA.Decidir(inimigo, posJogador, ctx.Inimigos, ctx.TilesTotal);
@@ -50,11 +53,21 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
                 break;
 
             case DecisaoInimigo.Atacar:
+                var hitbox = HitboxHelper.Ler(inimigo.Ataque);
+                var tiles = HitboxHelper.Tiles(hitbox, inimigo.Estado.Posicao, inimigo.Estado.Direcao, ctx.TilesTotal);
+
                 if (InimigoIA.PodeAtacar(inimigo, posJogador, ctx.Inimigos, ctx.TilesTotal))
                 {
                     ctx.VidaAtual = Math.Max(0, ctx.VidaAtual - inimigo.Dano);
                     ctx.QtdHitsSofridos++;
                 }
+
+                // Atinge tambem outros inimigos nas celulas da hitbox (fogo amigo, ex.: lanceiro atras de outro inimigo)
+                foreach (var outro in ctx.Inimigos.Where(o => o != inimigo && o.Vivo && tiles.Contains(o.Estado.Posicao)))
+                {
+                    outro.ReceberDano(inimigo.Dano);
+                }
+
                 inimigo.Preparado = false;
                 inimigo.Telegrafando = false;
                 inimigo.RecuoPendente = inimigo.RecuoAposAtaque > 0;

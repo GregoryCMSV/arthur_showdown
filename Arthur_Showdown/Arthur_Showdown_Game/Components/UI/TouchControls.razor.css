@@ -1,0 +1,75 @@
+.touch-controls-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+}
+
+.touch-left {
+    position: absolute;
+    left: 28px;
+    bottom: 28px;
+    display: flex;
+    gap: 14px;
+    pointer-events: auto;
+}
+
+.touch-right-triangle {
+    position: absolute;
+    right: 28px;
+    bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.tri-bottom-row {
+    display: flex;
+    gap: 22px;
+}
+
+.touch-btn {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background-color: rgba(34, 34, 59, 0.85);
+    border: 3px solid #ffd166;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s ease-in-out, background-color 0.15s;
+    user-select: none;
+    padding: 0;
+}
+
+    .touch-btn:hover {
+        background-color: rgba(74, 78, 105, 0.95);
+    }
+
+    .touch-btn:active {
+        transform: scale(0.92);
+    }
+
+    .touch-btn.touch-action {
+        background-color: rgba(239, 35, 60, 0.88);
+        border-color: #ffd166;
+    }
+
+.touch-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.touch-label {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: #ffd166;
+}
