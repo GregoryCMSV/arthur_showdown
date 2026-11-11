@@ -74,12 +74,59 @@ namespace Arthur_Showdown_Game.Services
             catch { return null; }
         }
 
-        public async Task<EstadoJogoDto?> GetEstado(int gameId)
+        public async Task<EstadoJogoDto?> GetEstado(int gameId, bool resetCooldown = false)
         {
             try
             {
                 await PrepararAutenticacaoAsync();
-                var resposta = await _httpClient.GetAsync($"/api/game/{gameId}/estado");
+                string url = resetCooldown ? $"/api/game/{gameId}/estado?resetCooldown=true" : $"/api/game/{gameId}/estado";
+                var resposta = await _httpClient.GetAsync(url);
+                if (resposta.IsSuccessStatusCode)
+                    return await resposta.Content.ReadFromJsonAsync<EstadoJogoDto>();
+                return null;
+            }
+            catch { return null; }
+        }
+
+        public async Task<EstadoJogoDto?> AplicarMelhoria(int gameId, int deckAtaquesId, TipoMelhoriaAtaque tipo)
+        {
+            try
+            {
+                await PrepararAutenticacaoAsync();
+                var resposta = await _httpClient.PostAsJsonAsync($"/api/game/{gameId}/melhoria", new AplicarMelhoriaRequest
+                {
+                    DeckAtaquesId = deckAtaquesId,
+                    Tipo = tipo
+                });
+                if (resposta.IsSuccessStatusCode)
+                    return await resposta.Content.ReadFromJsonAsync<EstadoJogoDto>();
+                return null;
+            }
+            catch { return null; }
+        }
+
+        public async Task<List<AtaqueDto>?> ObterOpcoesNovoAtaque(int gameId)
+        {
+            try
+            {
+                await PrepararAutenticacaoAsync();
+                var resposta = await _httpClient.GetAsync($"/api/game/{gameId}/opcoes-ataque");
+                if (resposta.IsSuccessStatusCode)
+                    return await resposta.Content.ReadFromJsonAsync<List<AtaqueDto>>();
+                return null;
+            }
+            catch { return null; }
+        }
+
+        public async Task<EstadoJogoDto?> EscolherNovoAtaque(int gameId, int ataqueId)
+        {
+            try
+            {
+                await PrepararAutenticacaoAsync();
+                var resposta = await _httpClient.PostAsJsonAsync($"/api/game/{gameId}/novo-ataque", new EscolherNovoAtaqueRequest
+                {
+                    AtaqueId = ataqueId
+                });
                 if (resposta.IsSuccessStatusCode)
                     return await resposta.Content.ReadFromJsonAsync<EstadoJogoDto>();
                 return null;

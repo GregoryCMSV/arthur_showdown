@@ -13,6 +13,7 @@ public class AdicionarNaFilaAcao(CartaAtaque carta, List<CartaAtaque> todas) : I
         if (carta.EmFila || carta.EmCooldown) return Task.CompletedTask;
         int prox = todas.Where(c => c.EmFila).Select(c => c.PosicaoFila!.Value).DefaultIfEmpty(-1).Max() + 1;
         carta.PosicaoFila = prox;
+        carta.QtdVezesAdicionadoFila++;
         return Task.CompletedTask;
     }
 }

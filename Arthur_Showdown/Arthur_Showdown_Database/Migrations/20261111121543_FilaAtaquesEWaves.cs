@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -43,6 +43,14 @@ namespace Arthur_Showdown_Database.Migrations
                 table: "DecksAtaques",
                 type: "integer",
                 nullable: true);
+
+            migrationBuilder.Sql(@"
+                UPDATE ""Ataques"" a
+                SET ""ImagemUrl"" = p.""ImagemUrl""
+                FROM ""InimigoAcoes"" ia
+                JOIN ""Personagens"" p ON p.""Id"" = ia.""PersonagemId""
+                WHERE ia.""AtaqueId"" = a.""Id"" AND a.""ImagemUrl"" IS NULL;
+            ");
         }
 
         /// <inheritdoc />

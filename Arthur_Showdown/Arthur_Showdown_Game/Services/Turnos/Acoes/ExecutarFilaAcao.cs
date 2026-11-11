@@ -24,6 +24,7 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                 inimigo.ReceberDano(carta.Ataque.Dano);
 
             carta.PosicaoFila = null;
+            carta.QtdUsosNaRun++;
             carta.CooldownRestante = carta.Ataque.Cooldown > 0
                 ? carta.Ataque.Cooldown + 1
                 : 0;

@@ -44,9 +44,17 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
                 inimigo.Telegrafando = true;
                 break;
 
+            case DecisaoInimigo.Esperar:
+                inimigo.RecuoPendente = false;
+                inimigo.Telegrafando = false;
+                break;
+
             case DecisaoInimigo.Atacar:
                 if (InimigoIA.PodeAtacar(inimigo, posJogador, ctx.Inimigos, ctx.TilesTotal))
+                {
                     ctx.VidaAtual = Math.Max(0, ctx.VidaAtual - inimigo.Dano);
+                    ctx.QtdHitsSofridos++;
+                }
                 inimigo.Preparado = false;
                 inimigo.Telegrafando = false;
                 inimigo.RecuoPendente = inimigo.RecuoAposAtaque > 0;

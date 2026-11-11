@@ -12,6 +12,7 @@ public class RemoverDaFilaAcao(CartaAtaque carta, List<CartaAtaque> todas) : IAc
     {
         if (!carta.EmFila) return Task.CompletedTask;
         carta.PosicaoFila = null;
+        carta.QtdVezesRemovidoFila++;
         int idx = 0;
         foreach (var c in todas.Where(x => x.EmFila).OrderBy(x => x.PosicaoFila))
             c.PosicaoFila = idx++;

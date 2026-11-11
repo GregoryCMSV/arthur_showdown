@@ -60,6 +60,7 @@ namespace Arthur__Showdown_API
             {
                 var db = scope.ServiceProvider.GetRequiredService<ArthurShowdownContext>();
                 db.Database.Migrate();
+                db.Database.ExecuteSqlRaw(@"UPDATE ""Ataques"" a SET ""ImagemUrl"" = p.""ImagemUrl"" FROM ""InimigoAcoes"" ia JOIN ""Personagens"" p ON p.""Id"" = ia.""PersonagemId"" WHERE ia.""AtaqueId"" = a.""Id"" AND a.""ImagemUrl"" IS NULL;");
             }
 
             // Configure the HTTP request pipeline.
