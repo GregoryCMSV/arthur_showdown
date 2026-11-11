@@ -19,7 +19,7 @@ namespace Arthur_Showdown_Game.Components.Pages
         [Inject] public TurnManager Turnos { get; set; } = default!;
 
         private int _gameId;
-        private int _vidaMax = 100;
+        private int _vidaMax = 10;
         private int _ouro;
         private int _localId;
         private int _posInicial = 1;

@@ -22,21 +22,23 @@ namespace Arthur_Showdown_Game.Components.Game
         // Lado para o qual o inimigo olha 
         private int Rumo(InimigoEmCombate i)
         {
-            var r = Math.Sign((_PlayerService.CurrentCharacter?.PosicaoPersonagem ?? 0) - i.Estado.Posicao);
-            return r == 0 ? 1 : r;
+            return i.Estado.Direcao == 0 ? 1 : i.Estado.Direcao;
         }
 
         // Intencao do inimigo: o que ele vai fazer no proximo turno
         private string Intencao(InimigoEmCombate i)
         {
-            var a = i.Proxima;
-            if (a == null) return "";
-            return a.Tipo switch
+            int posJ = _PlayerService.CurrentCharacter?.PosicaoPersonagem ?? 0;
+            var decisao = InimigoIA.Decidir(i, posJ, Inimigos, QuantidadeTiles);
+            int rumo = InimigoIA.Rumo(i, posJ);
+            return decisao switch
             {
-                "Mover" => Math.Sign(a.Valor) * Rumo(i) > 0 ? "->" : "<-",
-                "Preparar" => "Carregar",
-                "Atacar" => $"{(a.Ataque?.Dano ?? a.Valor)}",
-                _ => "…"
+                DecisaoInimigo.Virar => "Virar",
+                DecisaoInimigo.Preparar => "Carregar",
+                DecisaoInimigo.Mover => rumo > 0 ? "->" : "<-",
+                DecisaoInimigo.Recuar => rumo > 0 ? "<-" : "->",
+                DecisaoInimigo.Atacar => i.Dano.ToString(),
+                _ => "..."
             };
         }
 

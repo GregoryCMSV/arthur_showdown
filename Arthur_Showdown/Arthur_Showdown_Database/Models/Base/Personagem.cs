@@ -1,4 +1,4 @@
-﻿using Arthur_Showdown_Database.Models.Auxiliar;
+using Arthur_Showdown_Database.Models.Auxiliar;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,5 +16,7 @@ namespace Arthur_Showdown_Database.Models.Base
         public TipoPersonagem? TipoPersonagem { get; set; }
 
         public string? ImagemUrl { get; set; }
+
+        public int Vida { get; set; }
     }
 }

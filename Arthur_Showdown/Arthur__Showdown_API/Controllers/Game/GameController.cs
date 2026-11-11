@@ -78,8 +78,8 @@ namespace Arthur__Showdown_API.Controllers.Game
             {
                 GameId = game.Id,
                 PersonagemId = personagem.Id,
-                VidaMaxima = 100,
-                VidaAtual = 100,
+                VidaMaxima = 10,
+                VidaAtual = 10,
                 Posicao = 1,
                 DirecaoOlhar = 1
             };
@@ -109,9 +109,10 @@ namespace Arthur__Showdown_API.Controllers.Game
                 {
                     GameId = game.Id,
                     PersonagemId = inimigo.Id,
-                    VidaAtual = 3,
+                    VidaAtual = inimigo.Vida > 0 ? inimigo.Vida : 3,
                     Posicao = 4,
-                    CursorAcao = 0
+                    CursorAcao = 0,
+                    DirecaoOlhar = Random.Shared.Next(2) == 0 ? -1 : 1
                 });
             }
 
@@ -176,6 +177,7 @@ namespace Arthur__Showdown_API.Controllers.Game
                     VidaAtual = i.VidaAtual,
                     Posicao = i.Posicao,
                     CursorAcao = i.CursorAcao,
+                    Direcao = i.DirecaoOlhar == 0 ? 1 : i.DirecaoOlhar,
                     Acoes = acoes.Where(a => a.PersonagemId == i.PersonagemId)
                         .Select(a => new InimigoAcaoDto
                         {
@@ -222,7 +224,8 @@ namespace Arthur__Showdown_API.Controllers.Game
                 PersonagemId = i.PersonagemId,
                 VidaAtual = i.VidaAtual,
                 Posicao = i.Posicao,
-                CursorAcao = i.CursorAcao
+                CursorAcao = i.CursorAcao,
+                DirecaoOlhar = i.Direcao == 0 ? 1 : i.Direcao
             }));
 
             await _db.SaveChangesAsync();

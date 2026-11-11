@@ -290,6 +290,9 @@ namespace Arthur_Showdown_Database.Migrations
                     b.Property<int>("CursorAcao")
                         .HasColumnType("integer");
 
+                    b.Property<int>("DirecaoOlhar")
+                        .HasColumnType("integer");
+
                     b.Property<int>("GameId")
                         .HasColumnType("integer");
 
@@ -392,6 +395,9 @@ namespace Arthur_Showdown_Database.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("TipoPersonagemId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Vida")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

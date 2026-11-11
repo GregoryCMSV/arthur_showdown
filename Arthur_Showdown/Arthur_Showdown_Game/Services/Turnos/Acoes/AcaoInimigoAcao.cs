@@ -7,43 +7,41 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
     public bool GastaTurno => false;
     public async Task ExecutarAsync(BatalhaContexto ctx)
     {
-        var a = inimigo.Proxima;
-        if (a == null) return;
-
         var posJogador = ctx.Jogador.PosicaoPersonagem;
-        int rumo = Math.Sign(posJogador - inimigo.Estado.Posicao);   // direcao do jogador (-1, 0, 1)
-        if (rumo == 0) rumo = 1;
+        int rumo = InimigoIA.Rumo(inimigo, posJogador);
+        var decisao = InimigoIA.Decidir(inimigo, posJogador, ctx.Inimigos, ctx.TilesTotal);
 
-        switch (a.Tipo)
+        switch (decisao)
         {
-            case "Mover":
-                int passo = Math.Sign(a.Valor) * rumo;
-                for (int i = 0; i < Math.Abs(a.Valor); i++)
+            case DecisaoInimigo.Virar:
+                inimigo.Estado.Direcao = rumo;
+                break;
+
+            case DecisaoInimigo.Preparar:
+                inimigo.Preparado = true;
+                break;
+
+            case DecisaoInimigo.Mover:
+                inimigo.Estado.Posicao += rumo;
+                break;
+
+            case DecisaoInimigo.Recuar:
+                int passos = inimigo.RecuoPendente ? inimigo.RecuoAposAtaque : inimigo.RecuoSeProximo;
+                inimigo.RecuoPendente = false;
+                for (int i = 0; i < Math.Max(1, passos); i++)
                 {
-                    int novo = inimigo.Estado.Posicao + passo;
-                    bool bloqueado = novo < 0 || novo >= ctx.TilesTotal
-                        || novo == posJogador
-                        || ctx.Inimigos.Any(o => o != inimigo && o.Vivo && o.Estado.Posicao == novo);
-                    if (bloqueado) break;
-                    inimigo.Estado.Posicao = novo;
+                    if (!InimigoIA.PodeAndar(inimigo, -rumo, posJogador, ctx.Inimigos, ctx.TilesTotal)) break;
+                    inimigo.Estado.Posicao -= rumo;   // recua sem virar
                 }
                 break;
 
-            case "Atacar":
-                var hitbox = HitboxHelper.Ler(a.Ataque);
-                var tiles = HitboxHelper.Tiles(hitbox, inimigo.Estado.Posicao, rumo, ctx.TilesTotal);
-                if (tiles.Contains(posJogador))
-                    ctx.VidaAtual = Math.Max(0, ctx.VidaAtual - (a.Ataque?.Dano ?? a.Valor));
-                break;
-
-            case "Preparar":   //  o jogador ve o ataque chegando
-            case "Esperar":
-            default:
+            case DecisaoInimigo.Atacar:
+                ctx.VidaAtual = Math.Max(0, ctx.VidaAtual - inimigo.Dano);
+                inimigo.Preparado = false;
+                inimigo.RecuoPendente = inimigo.RecuoAposAtaque > 0;
                 break;
         }
 
-        inimigo.Avancar();
         await Task.Delay(300);
     }
 }
-

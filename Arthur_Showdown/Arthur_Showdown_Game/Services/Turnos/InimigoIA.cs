@@ -1,0 +1,68 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Arthur_Showdown_Game.Services;
+
+public enum DecisaoInimigo { Esperar, Virar, Preparar, Mover, Recuar, Atacar }
+
+/// <summary>
+/// Comportamento padrao dos inimigos (uma acao por turno):
+/// recuar (se aplicavel) > virar para o jogador > preparar > atacar se estiver no alcance > mover em direcao ao jogador.
+/// Recuo depende dos dados do inimigo (acoes RecuarAposAtaque / RecuarSeProximo).
+/// </summary>
+public static class InimigoIA
+{
+    // Ataques com alcance maior que isso sao considerados a distancia e precisam de linha livre ate o jogador
+    private const int AlcanceCorpoACorpo = 2;
+
+    public static DecisaoInimigo Decidir(InimigoEmCombate e, int posJogador, IEnumerable<InimigoEmCombate> todos, int tilesTotal)
+    {
+        int pos = e.Estado.Posicao;
+        int dist = Math.Abs(posJogador - pos);
+        int rumo = Rumo(e, posJogador);
+
+        if (e.RecuoPendente && PodeRecuar(e, posJogador, todos, tilesTotal))
+            return DecisaoInimigo.Recuar;
+        if (e.RecuoSeProximo > 0 && dist == 1 && PodeRecuar(e, posJogador, todos, tilesTotal))
+            return DecisaoInimigo.Recuar;
+
+        if (e.Estado.Direcao != rumo) return DecisaoInimigo.Virar;
+        if (!e.Preparado) return DecisaoInimigo.Preparar;
+        if (PodeAtacar(e, posJogador, todos, tilesTotal)) return DecisaoInimigo.Atacar;
+        return PodeAndar(e, rumo, posJogador, todos, tilesTotal) ? DecisaoInimigo.Mover : DecisaoInimigo.Esperar;
+    }
+
+    public static int Rumo(InimigoEmCombate e, int posJogador)
+    {
+        int r = Math.Sign(posJogador - e.Estado.Posicao);
+        return r == 0 ? 1 : r;
+    }
+
+    public static bool PodeAtacar(InimigoEmCombate e, int posJogador, IEnumerable<InimigoEmCombate> todos, int tilesTotal)
+    {
+        var hitbox = HitboxHelper.Ler(e.Ataque);
+        var tiles = HitboxHelper.Tiles(hitbox, e.Estado.Posicao, e.Estado.Direcao, tilesTotal);
+        if (!tiles.Contains(posJogador)) return false;
+
+        if (hitbox.AlcanceMax > AlcanceCorpoACorpo)
+        {
+            int min = Math.Min(e.Estado.Posicao, posJogador);
+            int max = Math.Max(e.Estado.Posicao, posJogador);
+            if (todos.Any(o => o != e && o.Vivo && o.Estado.Posicao > min && o.Estado.Posicao < max))
+                return false;
+        }
+        return true;
+    }
+
+    public static bool PodeAndar(InimigoEmCombate e, int direcao, int posJogador, IEnumerable<InimigoEmCombate> todos, int tilesTotal)
+    {
+        int novo = e.Estado.Posicao + direcao;
+        return novo >= 0 && novo < tilesTotal
+            && novo != posJogador
+            && !todos.Any(o => o != e && o.Vivo && o.Estado.Posicao == novo);
+    }
+
+    private static bool PodeRecuar(InimigoEmCombate e, int posJogador, IEnumerable<InimigoEmCombate> todos, int tilesTotal)
+        => PodeAndar(e, -Rumo(e, posJogador), posJogador, todos, tilesTotal);
+}
