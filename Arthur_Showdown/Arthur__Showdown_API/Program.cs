@@ -90,6 +90,7 @@ namespace Arthur__Showdown_API
                     UPDATE ""Personagens"" SET ""Nome"" = 'Esqueleto', ""Vida"" = 3 WHERE ""Nome"" = 'InimigoGenerico' OR (""Nome"" = 'Esqueleto' AND ""Vida"" <= 0);
                     UPDATE ""Locais"" SET ""InimigosPossiveisIds"" = ARRAY(SELECT ""Id"" FROM ""Personagens"" WHERE ""Nome"" IN ('Esqueleto', 'Arqueiro', 'Lanceiro') ORDER BY ""Id"") WHERE ""Nome"" = 'Floresta';
                 ");
+            }
 
                 // Configure the HTTP request pipeline.
                 // if (app.Environment.IsDevelopment())
