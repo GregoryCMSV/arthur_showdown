@@ -47,6 +47,10 @@ public class InimigoEmCombate
         set => Estado.EfeitoEspelhoAtivo = value;
     }
 
+    public DecisaoInimigo? IntencaoPlanejada { get; set; }
+    public int DirecaoIntencao { get; set; } = 1;
+    public int OrdemTurno { get; set; } = 1;
+
     private InimigoAcaoDto? AcaoAtacar => Fila.FirstOrDefault(a => a.Tipo == "Atacar");
 
     public List<AtaqueDto> AtaquesNaFila => Fila

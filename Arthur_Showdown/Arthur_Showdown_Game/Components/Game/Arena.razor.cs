@@ -1,7 +1,9 @@
 using Arthur_Showdown_Game.Services;
 using Arthur_Showdown_Shared.Dtos.Game;
 using Microsoft.AspNetCore.Components;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Arthur_Showdown_Game.Components.Game
 {
@@ -17,15 +19,27 @@ namespace Arthur_Showdown_Game.Components.Game
         [Inject] public TurnManager _Turnos { get; set; } = default!;
         [Parameter] public int PlayerStartPosition { get; set; } = 2;
         [Parameter] public List<InimigoEmCombate> Inimigos { get; set; } = new();
+        [Parameter] public bool MostrarOrdemInimigos { get; set; }
 
         private int Rumo(InimigoEmCombate i)
             => i.Estado.Direcao == 0 ? 1 : i.Estado.Direcao;
 
+        private int OrdemAcao(InimigoEmCombate i)
+        {
+            var vivos = Inimigos
+                .Where(x => x.Vivo)
+                .OrderBy(x => x.OrdemTurno > 0 ? x.OrdemTurno : int.MaxValue)
+                .ThenBy(x => Math.Abs(x.Estado.Posicao - (_PlayerService.CurrentCharacter?.PosicaoPersonagem ?? 0)))
+                .ThenBy(x => x.Estado.Posicao)
+                .ToList();
+            return vivos.IndexOf(i) + 1;
+        }
+
         private string SetaMovimento(InimigoEmCombate i)
         {
             int posJ = _PlayerService.CurrentCharacter?.PosicaoPersonagem ?? 0;
-            var decisao = InimigoIA.Decidir(i, posJ, Inimigos, QuantidadeTiles);
-            int rumo = InimigoIA.Rumo(i, posJ);
+            var decisao = i.IntencaoPlanejada ?? InimigoIA.Decidir(i, posJ, Inimigos, QuantidadeTiles);
+            int rumo = i.DirecaoIntencao != 0 ? i.DirecaoIntencao : InimigoIA.Rumo(i, posJ);
             return decisao switch
             {
                 DecisaoInimigo.Mover => rumo > 0 ? "→" : "←",

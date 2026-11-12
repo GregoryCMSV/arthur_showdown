@@ -18,10 +18,13 @@ public partial class Home : ComponentBase
     [Inject] private NavigationService NavService { get; set; } = default!;
     [Inject] private InputManager Input { get; set; } = default!;
     [Inject] private SoundService Som { get; set; } = default!;
+    [Inject] public LoadingService _LoadingService { get; set; } = default!;
+
 
     protected override async Task OnInitializedAsync()
     {
         await VerificarProgresso();
+        _LoadingService.FinalizarCarregamento();
     }
 
     private async Task TentarPassarDaTelaInicial()

@@ -5,7 +5,7 @@
 @if (Controle.MostrarControlesNaTela)
 {
     <div class="touch-controls-layer" @onclick:stopPropagation="true">
-        <div class="touch-left">
+        <div class="touch-left" style="transform: scale(@Controle.EscalaHudCss); transform-origin: bottom left;">
             <button type="button" class="touch-btn" title="Mover Esquerda (A)" @onclick="Controle.MoverEsquerda" tabindex="-1">
                 <span class="touch-icon">◀</span>
                 <span class="touch-label">Esq</span>
@@ -16,7 +16,7 @@
             </button>
         </div>
 
-        <div class="touch-right-triangle">
+        <div class="touch-right-triangle" style="transform: scale(@Controle.EscalaHudCss); transform-origin: bottom right;">
             <button type="button" class="touch-btn tri-top" title="Virar (W)" @onclick="Controle.TrocarDirecao" tabindex="-1">
                 <span class="touch-icon">↻</span>
                 <span class="touch-label">Virar</span>

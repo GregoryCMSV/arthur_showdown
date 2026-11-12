@@ -264,7 +264,6 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                     {
                         int dirAtual = ini.Estado.Direcao == 0 ? 1 : ini.Estado.Direcao;
                         ini.Estado.Direcao = -dirAtual;
-                        ini.Telegrafando = false;
                     }
                     ctx.NotificarVisual?.Invoke();
 

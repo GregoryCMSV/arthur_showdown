@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Arthur_Showdown_Game</title>
     <base href="/" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -24,6 +24,31 @@
         <span class="dismiss">🗙</span>
     </div>
 
+    <script>
+        (function () {
+            window.addEventListener('wheel', function (e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            window.addEventListener('keydown', function (e) {
+                if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+                    e.preventDefault();
+                }
+            });
+
+            window.addEventListener('gesturestart', function (e) {
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchmove', function (e) {
+                if (e.touches && e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        })();
+    </script>
     <script src="js/sound.js"></script>
     <script src="_framework/blazor.webview.js" autostart="false"></script>
 

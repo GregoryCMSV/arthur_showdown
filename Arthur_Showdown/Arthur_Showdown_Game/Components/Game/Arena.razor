@@ -13,6 +13,10 @@
     {
         var seta = SetaMovimento(ini);
         <div @key="ini" class="inimigo-base" style="transform: translateX(calc(@ini.Estado.Posicao * 11.2vw));">
+            @if (MostrarOrdemInimigos)
+            {
+                <div class="inimigo-ordem-badge" title="Ordem de ação neste turno">@OrdemAcao(ini)º</div>
+            }
             @if (ini.Preparado)
             {
                 <div class="inimigo-fila">
@@ -36,7 +40,7 @@
                     <img src="@ini.Estado.ImagemUrl" alt="@ini.Estado.Nome" />
                 }
             </div>
-            <div class="inimigo-vida">@ini.Estado.VidaAtual HP</div>
+            <div class="inimigo-vida">❤ @ini.Estado.VidaAtual</div>
         </div>
     }
 

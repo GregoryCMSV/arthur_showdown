@@ -14,13 +14,24 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
         if (!inimigo.Vivo) return;
 
         var posJogador = ctx.Jogador.PosicaoPersonagem;
-        int rumo = InimigoIA.Rumo(inimigo, posJogador);
-        var decisao = InimigoIA.Decidir(inimigo, posJogador, ctx.Inimigos, ctx.TilesTotal);
+        int rumoAtual = InimigoIA.Rumo(inimigo, posJogador);
+        int dirIntencao = inimigo.DirecaoIntencao != 0 ? inimigo.DirecaoIntencao : rumoAtual;
+        var decisao = inimigo.IntencaoPlanejada ?? InimigoIA.Decidir(inimigo, posJogador, ctx.Inimigos, ctx.TilesTotal);
+
+        if (inimigo.Telegrafando)
+        {
+            decisao = DecisaoInimigo.Atacar;
+        }
+        else if (decisao != DecisaoInimigo.Recuar && decisao != DecisaoInimigo.Virar && inimigo.Estado.Direcao != dirIntencao)
+        {
+            // Caso o inimigo tenha sido virado por Espelho antes de telegrafar, ele gasta o turno virando
+            decisao = DecisaoInimigo.Virar;
+        }
 
         switch (decisao)
         {
             case DecisaoInimigo.Virar:
-                inimigo.Estado.Direcao = rumo;
+                inimigo.Estado.Direcao = rumoAtual;
                 inimigo.Telegrafando = false;
                 break;
 
@@ -30,9 +41,12 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
                 break;
 
             case DecisaoInimigo.Mover:
-                inimigo.Estado.Posicao += rumo;
+                if (InimigoIA.PodeAndar(inimigo, dirIntencao, posJogador, ctx.Inimigos, ctx.TilesTotal))
+                {
+                    inimigo.Estado.Posicao += dirIntencao;
+                    ctx.TocarSomMovimento?.Invoke();
+                }
                 inimigo.Telegrafando = false;
-                ctx.TocarSomMovimento?.Invoke();
                 break;
 
             case DecisaoInimigo.Recuar:
@@ -42,8 +56,8 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
                 bool moveu = false;
                 for (int i = 0; i < Math.Max(1, passos); i++)
                 {
-                    if (!InimigoIA.PodeAndar(inimigo, -rumo, posJogador, ctx.Inimigos, ctx.TilesTotal)) break;
-                    inimigo.Estado.Posicao -= rumo;
+                    if (!InimigoIA.PodeAndar(inimigo, -dirIntencao, posJogador, ctx.Inimigos, ctx.TilesTotal)) break;
+                    inimigo.Estado.Posicao -= dirIntencao;
                     moveu = true;
                 }
                 if (moveu) ctx.TocarSomMovimento?.Invoke();
@@ -59,40 +73,69 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
                 break;
 
             case DecisaoInimigo.Atacar:
+                int dirAtaque = inimigo.Estado.Direcao == 0 ? rumoAtual : inimigo.Estado.Direcao;
                 var hitbox = HitboxHelper.Ler(inimigo.Ataque);
-                var tiles = HitboxHelper.Tiles(hitbox, inimigo.Estado.Posicao, inimigo.Estado.Direcao, ctx.TilesTotal);
+                var tiles = HitboxHelper.Tiles(hitbox, inimigo.Estado.Posicao, dirAtaque, ctx.TilesTotal);
                 bool ehFlecha = hitbox.AlcanceMax > 2
                              || inimigo.Estado.Nome.Contains("Arqueiro", StringComparison.OrdinalIgnoreCase)
                              || (inimigo.Ataque?.Nome.Contains("Flecha", StringComparison.OrdinalIgnoreCase) ?? false);
 
-                ctx.EfeitoVisual = new EfeitoVisualAtaque
-                {
-                    TilesImpacto = ehFlecha ? new HashSet<int> { posJogador } : tiles,
-                    EhFlecha = ehFlecha,
-                    OrigemTile = inimigo.Estado.Posicao,
-                    DestinoTile = posJogador,
-                    Direcao = inimigo.Estado.Direcao == 0 ? rumo : inimigo.Estado.Direcao
-                };
-                ctx.NotificarVisual?.Invoke();
-
                 bool acertou = false;
-                if (InimigoIA.PodeAtacar(inimigo, posJogador, ctx.Inimigos, ctx.TilesTotal))
-                {
-                    if (ctx.EscudoAtivo)
-                    {
-                        ctx.EscudoAtivo = false;
-                    }
-                    else
-                    {
-                        ctx.VidaAtual = Math.Max(0, ctx.VidaAtual - inimigo.Dano);
-                        ctx.QtdHitsSofridos++;
-                    }
-                    acertou = true;
-                }
 
-                // Fogo amigo nos tiles atingidos (apenas para ataques fisicos de area/linha; flecha já exige caminho livre)
-                if (!ehFlecha)
+                if (ehFlecha)
                 {
+                    int distJog = tiles.Contains(posJogador) ? Math.Abs(posJogador - inimigo.Estado.Posicao) : int.MaxValue;
+                    var inimigoAlvo = ctx.Inimigos
+                        .Where(o => o != inimigo && o.Vivo && tiles.Contains(o.Estado.Posicao))
+                        .OrderBy(o => Math.Abs(o.Estado.Posicao - inimigo.Estado.Posicao))
+                        .FirstOrDefault();
+                    int distIni = inimigoAlvo != null ? Math.Abs(inimigoAlvo.Estado.Posicao - inimigo.Estado.Posicao) : int.MaxValue;
+
+                    int destinoFlecha = Math.Clamp(inimigo.Estado.Posicao + dirAtaque * Math.Min(hitbox.AlcanceMax, ctx.TilesTotal - 1), 0, ctx.TilesTotal - 1);
+                    if (distIni <= distJog && inimigoAlvo != null)
+                        destinoFlecha = inimigoAlvo.Estado.Posicao;
+                    else if (distJog < distIni)
+                        destinoFlecha = posJogador;
+
+                    ctx.EfeitoVisual = new EfeitoVisualAtaque
+                    {
+                        TilesImpacto = new HashSet<int> { destinoFlecha },
+                        EhFlecha = true,
+                        OrigemTile = inimigo.Estado.Posicao,
+                        DestinoTile = destinoFlecha,
+                        Direcao = dirAtaque
+                    };
+                    ctx.NotificarVisual?.Invoke();
+
+                    if (distIni < distJog && inimigoAlvo != null)
+                    {
+                        inimigoAlvo.ReceberDano(inimigo.Dano);
+                        acertou = true;
+                    }
+                    else if (distJog < distIni)
+                    {
+                        AplicarDanoNoJogador(ctx, inimigo.Dano);
+                        acertou = true;
+                    }
+                }
+                else
+                {
+                    ctx.EfeitoVisual = new EfeitoVisualAtaque
+                    {
+                        TilesImpacto = tiles,
+                        EhFlecha = false,
+                        OrigemTile = inimigo.Estado.Posicao,
+                        DestinoTile = posJogador,
+                        Direcao = dirAtaque
+                    };
+                    ctx.NotificarVisual?.Invoke();
+
+                    if (tiles.Contains(posJogador))
+                    {
+                        AplicarDanoNoJogador(ctx, inimigo.Dano);
+                        acertou = true;
+                    }
+
                     foreach (var outro in ctx.Inimigos.Where(o => o != inimigo && o.Vivo && tiles.Contains(o.Estado.Posicao)))
                     {
                         outro.ReceberDano(inimigo.Dano);
@@ -125,6 +168,19 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
         }
 
         await Task.Delay(250);
+    }
+
+    private static void AplicarDanoNoJogador(BatalhaContexto ctx, int dano)
+    {
+        if (ctx.EscudoAtivo)
+        {
+            ctx.EscudoAtivo = false;
+        }
+        else
+        {
+            ctx.VidaAtual = Math.Max(0, ctx.VidaAtual - dano);
+            ctx.QtdHitsSofridos++;
+        }
     }
 
     private static void InvocarInimigosDoChefe(BatalhaContexto ctx, int quantidade)

@@ -2,67 +2,76 @@
 
 <Scene ImagemUrl="@ImgService.ObterBackgroundLogin()" OnClick="TentarPassarDaTelaInicial">
     <UILayer>
-        <div class="titulo-fixo">
-            <Label Tamanho="96px" Sombra="4px 4px 0px #000" EspacamentoLetras="2px">
-                Arthur Showdown
-            </Label>
-        </div>
-        <div class="conteudo-dinamico">
-            @if (EstadoAtual == GameState.PressAnyKey)
-            {
-                <Label Tamanho="40px" Cor="#cccccc" CssClass="blink" Margem="20px 0 0 0">
-                    Clique em qualquer lugar para iniciar
+        <div class="@(Input.EhDispositivoMobile ? "home-mobile" : "home-pc")">
+            <div class="titulo-fixo">
+                <Label Tamanho="@(Input.EhDispositivoMobile ? "46px" : "96px")" Sombra="4px 4px 0px #000" EspacamentoLetras="2px">
+                    Arthur Showdown
                 </Label>
-            }
-            else if (EstadoAtual == GameState.Autenticacao)
-            {
-                <AuthMenu OnAutenticadoSucesso="IrParaMenuPrincipal" />
-            }
-            else if (EstadoAtual == GameState.MainMenu)
-            {
-                @if (MostrarAvisoNovoJogo)
+            </div>
+            <div class="conteudo-dinamico">
+                @if (EstadoAtual == GameState.PressAnyKey)
                 {
-                    <div class="aviso" @onclick:stopPropagation="true">
-                        <Label Tamanho="60px" Cor="#ff4d4d">Atenção!</Label>
-                        <Label Tamanho="40px" Cor="#ffffff">
-                            Você tem um jogo em andamento. Iniciar um novo jogo apagará seu progresso atual. Deseja continuar?
-                        </Label>
-                        <button class="btn-sim" @onclick="ConfirmarSobrescreverJogo">Sim</button>
-                        <button class="btn-nao" @onclick="() => MostrarAvisoNovoJogo = false">Não</button>
-                    </div>
+                    <Label Tamanho="@(Input.EhDispositivoMobile ? "24px" : "40px")" Cor="#cccccc" CssClass="blink" Margem="20px 0 0 0">
+                        Clique em qualquer lugar para iniciar
+                    </Label>
                 }
-                else if (MostrarOpcoes)
+                else if (EstadoAtual == GameState.Autenticacao)
                 {
-                    <div class="aviso" @onclick:stopPropagation="true">
-                        <Label Tamanho="60px" Cor="#ffd166">Opções</Label>
-                        <Label Tamanho="34px" Cor="#ffffff" Margem="10px 0">
-                            Controles na tela (Mobile / Teste PC): @(Input.MostrarControlesNaTela ? "Ativado" : "Desativado")
-                        </Label>
-                        <button class="btn-sim" @onclick="Input.AlternarControlesNaTela">
-                            @(Input.MostrarControlesNaTela ? "Ocultar Controles na Tela" : "Exibir Controles na Tela")
-                        </button>
-                        <button class="btn-sim" @onclick="Som.AlternarMusicaAsync">
-                            Música de Fundo: @(Som.MusicaAtiva ? "Ligada" : "Desligada")
-                        </button>
-                        <button class="btn-sim" @onclick="Som.AlternarEfeitosAsync">
-                            Efeitos Sonoros: @(Som.EfeitosAtivos ? "Ligados" : "Desligados")
-                        </button>
-                        <button class="btn-nao" @onclick="() => MostrarOpcoes = false">Voltar</button>
-                    </div>
+                    <AuthMenu OnAutenticadoSucesso="IrParaMenuPrincipal" />
                 }
-                else
+                else if (EstadoAtual == GameState.MainMenu)
                 {
-                    <div class="main-menu" @onclick:stopPropagation="true">
-                        @if (TemJogoAtivo)
-                        {
-                            <button @onclick="ContinuarJogo">Continuar</button>
-                        }
-                        <button @onclick="ClicouNovoJogo">Novo Jogo</button>
-                        <button @onclick="AbrirOpcoes">Opções</button>
-                        <button class="btn-sair" @onclick="Sair">Sair</button>
-                    </div>
+                    @if (MostrarAvisoNovoJogo)
+                    {
+                        <div class="aviso" @onclick:stopPropagation="true">
+                            <Label Tamanho="@(Input.EhDispositivoMobile ? "34px" : "60px")" Cor="#ff4d4d">Atenção!</Label>
+                            <Label Tamanho="@(Input.EhDispositivoMobile ? "22px" : "40px")" Cor="#ffffff">
+                                Você tem um jogo em andamento. Iniciar um novo jogo apagará seu progresso atual. Deseja continuar?
+                            </Label>
+                            <button class="btn-sim" @onclick="ConfirmarSobrescreverJogo">Sim</button>
+                            <button class="btn-nao" @onclick="() => MostrarAvisoNovoJogo = false">Não</button>
+                        </div>
+                    }
+                    else if (MostrarOpcoes)
+                    {
+                        <div class="opcoes-box" @onclick:stopPropagation="true">
+                            <Label Tamanho="@(Input.EhDispositivoMobile ? "28px" : "44px")" Cor="#ffd166">Opções</Label>
+
+                            <button class="opcoes-btn" @onclick="Input.AlternarControlesNaTela">
+                                Controles na Tela: @(Input.MostrarControlesNaTela ? "Ativado" : "Desativado")
+                            </button>
+
+                            <button class="opcoes-btn" @onclick="Som.AlternarMusicaAsync">
+                                Música de Fundo: @(Som.MusicaAtiva ? "Ligada" : "Desligada")
+                            </button>
+
+                            <button class="opcoes-btn" @onclick="Som.AlternarEfeitosAsync">
+                                Efeitos Sonoros: @(Som.EfeitosAtivos ? "Ligados" : "Desligados")
+                            </button>
+
+                            <div class="opcoes-hud-row">
+                                <button class="opcoes-btn opcoes-btn-menor" @onclick="Input.DiminuirHud">- HUD</button>
+                                <span class="opcoes-hud-label">HUD: @Input.EscalaHudPorcentagem%</span>
+                                <button class="opcoes-btn opcoes-btn-menor" @onclick="Input.AumentarHud">+ HUD</button>
+                            </div>
+
+                            <button class="opcoes-btn opcoes-btn-voltar" @onclick="() => MostrarOpcoes = false">Voltar</button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="main-menu" @onclick:stopPropagation="true">
+                            @if (TemJogoAtivo)
+                            {
+                                <button @onclick="ContinuarJogo">Continuar</button>
+                            }
+                            <button @onclick="ClicouNovoJogo">Novo Jogo</button>
+                            <button @onclick="AbrirOpcoes">Opções</button>
+                            <button class="btn-sair" @onclick="Sair">Sair</button>
+                        </div>
+                    }
                 }
-            }
+            </div>
         </div>
     </UILayer>
 </Scene>

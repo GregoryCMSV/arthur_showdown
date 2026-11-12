@@ -17,6 +17,7 @@ public partial class LobbyScreen : ComponentBase, IDisposable
     [Inject] public LoadingService _LoadingService { get; set; } = default!;
     [Inject] public TurnManager _Turnos { get; set; } = default!;
     [Inject] public SoundService _Som { get; set; } = default!;
+    [Inject] public NavigationService NavService { get; set; } = default!;
 
     private ModalAberto JanelaAberta = ModalAberto.Nenhum;
 
@@ -52,6 +53,11 @@ public partial class LobbyScreen : ComponentBase, IDisposable
     {
         JanelaAberta = ModalAberto.Mapa;
         StateHasChanged();
+    }
+
+    private void VoltarMenuInicial()
+    {
+        NavService.GoToHome();
     }
 
     private void StatusMudou()

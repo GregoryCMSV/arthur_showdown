@@ -2,6 +2,13 @@
     position: relative;
 }
 
+.home-pc,
+.home-mobile {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
 .titulo-fixo {
     position: absolute;
     top: 15%;
@@ -30,6 +37,7 @@
         background-color: #22222200;
         color: #fff;
         margin-bottom: 0px;
+        white-space: nowrap;
     }
 
 .aviso {
@@ -46,15 +54,166 @@
         width: 50%;
     }
 
-    
-
 .btn-sim {
     background-color: #d62828;
     color: white;
     font-size: 30px;
 }
-.btn-nao{
+
+.btn-nao {
     background-color: #222222;
     color: white;
     font-size: 30px;
+}
+
+.opcoes-box {
+    width: min(460px, 88vw);
+    max-height: 60vh;
+    overflow-y: auto;
+    background: rgba(20, 20, 38, 0.88);
+    border: 3px solid #ffd166;
+    border-radius: 12px;
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+}
+
+.opcoes-btn {
+    width: 100%;
+    margin: 0;
+    padding: 9px 14px;
+    background-color: #d62828;
+    color: #ffffff;
+    border: 2px solid #ffd166;
+    border-radius: 8px;
+    font-size: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+    .opcoes-btn:hover {
+        background-color: #ef233c;
+    }
+
+.opcoes-hud-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.opcoes-btn-menor {
+    width: 32%;
+}
+
+.opcoes-hud-label {
+    color: #ffd166;
+    font-size: 20px;
+    font-weight: bold;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    min-width: 110px;
+}
+
+.opcoes-btn-voltar {
+    background-color: #22223b;
+    margin-top: 4px;
+}
+
+    .opcoes-btn-voltar:hover {
+        background-color: #4a4e69;
+    }
+
+/* Ajustes exclusivos para celular (Mobile) mantendo o PC intacto */
+.home-mobile .titulo-fixo {
+    top: 4%;
+}
+
+.home-mobile .conteudo-dinamico {
+    top: 19%;
+}
+
+.home-mobile .main-menu {
+    margin-top: 1%;
+    width: min(320px, 75vw);
+    font-size: 30px;
+}
+
+    .home-mobile .main-menu button {
+        padding: 4px 10px;
+        margin-bottom: 2px;
+        line-height: 1.15;
+    }
+
+.home-mobile .aviso {
+    padding: 0 6%;
+    width: 90%;
+}
+
+    .home-mobile .aviso button {
+        margin-top: 8px;
+        margin-bottom: 6px;
+        padding: 6px 12px;
+        font-size: 20px;
+    }
+
+.home-mobile .opcoes-box {
+    width: min(400px, 86vw);
+    max-height: 76vh;
+    padding: 8px 16px;
+    gap: 6px;
+}
+
+.home-mobile .opcoes-btn {
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.home-mobile .opcoes-hud-label {
+    font-size: 15px;
+    min-width: 90px;
+}
+
+@media (max-height: 540px) {
+    .titulo-fixo {
+        top: 4%;
+    }
+
+    .conteudo-dinamico {
+        top: 19%;
+    }
+
+    .main-menu {
+        margin-top: 1%;
+        width: min(320px, 75vw);
+        font-size: 30px;
+    }
+
+        .main-menu button {
+            padding: 4px 10px;
+            margin-bottom: 2px;
+            line-height: 1.15;
+        }
+
+    .opcoes-box {
+        width: min(400px, 86vw);
+        max-height: 76vh;
+        padding: 8px 16px;
+        gap: 6px;
+    }
+
+    .opcoes-btn {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+
+    .opcoes-hud-label {
+        font-size: 15px;
+        min-width: 90px;
+    }
 }

@@ -29,7 +29,7 @@
         <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
         <!-- Display name -->
-        <ApplicationTitle>Arthur_Showdown_Game</ApplicationTitle>
+        <ApplicationTitle>Arthur Showdown</ApplicationTitle>
 
         <!-- App Identifier -->
         <ApplicationId>com.companyname.arthur_showdown_game</ApplicationId>
@@ -50,7 +50,7 @@
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appicon.png" ForegroundScale="0.65" Color="#1a1a2e" />
 
         <!-- Splash Screen -->
         <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />

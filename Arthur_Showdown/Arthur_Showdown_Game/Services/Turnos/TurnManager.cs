@@ -19,6 +19,7 @@ public class TurnManager
         ctx.NotificarVisual = () => OnMudou?.Invoke();
         Ctx = ctx;
         Cartas = cartas;
+        InimigoIA.PlanejarTurno(Ctx.Inimigos, Ctx.Jogador.PosicaoPersonagem, Ctx.TilesTotal);
         Fase = ctx.Inimigos.Count == 0 || ctx.VidaAtual <= 0 ? FaseTurno.Fim : FaseTurno.Jogador;
         OnMudou?.Invoke();
     }
@@ -75,7 +76,8 @@ public class TurnManager
             var lista = new List<IAcaoDeTurno> { new AvancarFilaAcao(Cartas) };
             lista.AddRange(Ctx.Inimigos
                 .Where(i => i.Vivo)
-                .OrderBy(i => Math.Abs(i.Estado.Posicao - Ctx.Jogador.PosicaoPersonagem))
+                .OrderBy(i => i.OrdemTurno > 0 ? i.OrdemTurno : int.MaxValue)
+                .ThenBy(i => Math.Abs(i.Estado.Posicao - Ctx.Jogador.PosicaoPersonagem))
                 .Select(i => new AcaoInimigoAcao(i)));
             foreach (var a in lista)
             {
@@ -91,6 +93,7 @@ public class TurnManager
                 }
             }
             Ctx.Turno++;
+            InimigoIA.PlanejarTurno(Ctx.Inimigos, Ctx.Jogador.PosicaoPersonagem, Ctx.TilesTotal);
         }
 
         if (Ctx.VidaAtual <= 0)
