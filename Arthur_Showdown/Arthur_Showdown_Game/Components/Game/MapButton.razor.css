@@ -26,13 +26,13 @@
 
 @media (max-height: 540px) {
     .lobby-controls {
-        top: 16px;
-        right: 20px;
-        transform: none;
+        right: 5vw;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     .btn-iniciar-mapa {
-        padding: 8px 18px;
+        padding: 10px 20px;
         font-size: 18px;
         margin-bottom: 0;
     }

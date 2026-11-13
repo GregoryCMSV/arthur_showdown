@@ -81,6 +81,11 @@ public partial class Home : ComponentBase
         NavService.GoToLobby();
     }
 
+    private void AbrirTutorial()
+    {
+        NavService.GoToTutorial();
+    }
+
     private void AbrirOpcoes()
     {
         MostrarOpcoes = true;

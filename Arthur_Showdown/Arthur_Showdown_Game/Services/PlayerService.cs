@@ -53,6 +53,21 @@ public class PlayerService
         CurrentCharacter?.PosicaoPersonagem = startPosition;
     }
 
+    public void GarantirPersonagemTutorial()
+    {
+        if (CurrentCharacter?.Personagem != null) return;
+        CurrentCharacter = new CharacterModel(_inputManager)
+        {
+            Personagem = new PersonagemDto
+            {
+                Id = 1,
+                Nome = "Cavaleiro",
+                ImagemUrl = "https://cqzgfbtcmybebeqpomgv.supabase.co/storage/v1/object/public/game-assets/Personagens/Cavaleiro.png",
+                AtaquesIniciais = new List<AtaqueDto>()
+            }
+        };
+    }
+
     public PersonagemDto? GetCurrentCharacterDto()
     {
         return CurrentCharacter?.Personagem;

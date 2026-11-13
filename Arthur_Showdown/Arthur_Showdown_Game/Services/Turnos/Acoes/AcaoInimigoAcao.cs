@@ -64,6 +64,7 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
                 break;
 
             case DecisaoInimigo.Telegrafar:
+                inimigo.Preparado = true;
                 inimigo.Telegrafando = true;
                 break;
 
@@ -109,7 +110,8 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
 
                     if (distIni < distJog && inimigoAlvo != null)
                     {
-                        inimigoAlvo.ReceberDano(inimigo.Dano);
+                        int aplicado = inimigoAlvo.ReceberDano(inimigo.Dano);
+                        ctx.RegistrarDanoFlutuante(inimigoAlvo.Estado.Posicao, aplicado);
                         acertou = true;
                     }
                     else if (distJog < distIni)
@@ -138,7 +140,8 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
 
                     foreach (var outro in ctx.Inimigos.Where(o => o != inimigo && o.Vivo && tiles.Contains(o.Estado.Posicao)))
                     {
-                        outro.ReceberDano(inimigo.Dano);
+                        int aplicado = outro.ReceberDano(inimigo.Dano);
+                        ctx.RegistrarDanoFlutuante(outro.Estado.Posicao, aplicado);
                         acertou = true;
                     }
                 }
@@ -152,6 +155,7 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
 
                 await Task.Delay(280);
                 ctx.EfeitoVisual = null;
+                ctx.TremendoTela = false;
                 ctx.Inimigos.RemoveAll(i => !i.Vivo);
 
                 // Mecanica do Chefe: apos atacar, se so tiver ele vivo na arena, invoca 2 inimigos
@@ -175,12 +179,18 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
         if (ctx.EscudoAtivo)
         {
             ctx.EscudoAtivo = false;
+            return;
         }
-        else
-        {
-            ctx.VidaAtual = Math.Max(0, ctx.VidaAtual - dano);
-            ctx.QtdHitsSofridos++;
-        }
+        if (dano <= 0) return;
+
+        ctx.VidaAtual = ctx.ImpedirMorteJogador
+            ? Math.Max(1, ctx.VidaAtual - dano)
+            : Math.Max(0, ctx.VidaAtual - dano);
+        ctx.QtdHitsSofridos++;
+        ctx.TremendoTela = true;
+        ctx.UltimoDanoJogador = dano;
+        ctx.DanoJogadorId++;
+        ctx.RegistrarDanoFlutuante(ctx.Jogador.PosicaoPersonagem, dano);
     }
 
     private static void InvocarInimigosDoChefe(BatalhaContexto ctx, int quantidade)
@@ -194,6 +204,7 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
         if (livres.Count == 0 || ctx.PoolInimigosInvocacao.Count == 0) return;
 
         int total = Math.Min(quantidade, livres.Count);
+        var posInvocados = new List<int>();
         for (int i = 0; i < total; i++)
         {
             var modelo = ctx.PoolInimigosInvocacao[Random.Shared.Next(ctx.PoolInimigosInvocacao.Count)];
@@ -218,6 +229,8 @@ public class AcaoInimigoAcao(InimigoEmCombate inimigo) : IAcaoDeTurno
                 }).ToList()
             };
             ctx.Inimigos.Add(new InimigoEmCombate(novo));
+            posInvocados.Add(livres[i]);
         }
+        ctx.RegistrarRaiosInvocacao(posInvocados);
     }
 }

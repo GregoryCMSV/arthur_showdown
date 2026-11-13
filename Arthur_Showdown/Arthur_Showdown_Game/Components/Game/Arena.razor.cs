@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Arthur_Showdown_Game.Components.Game
 {
-    public partial class Arena
+    public partial class Arena : IDisposable
     {
         [Parameter] public int QuantidadeTiles { get; set; } = 5;
         [Parameter] public bool IsLobby { get; set; }
@@ -20,6 +20,40 @@ namespace Arthur_Showdown_Game.Components.Game
         [Parameter] public int PlayerStartPosition { get; set; } = 2;
         [Parameter] public List<InimigoEmCombate> Inimigos { get; set; } = new();
         [Parameter] public bool MostrarOrdemInimigos { get; set; }
+
+        private bool TremendoTela => _Turnos.Ctx?.TremendoTela == true;
+
+        private List<DanoFlutuante> DanosFlutuantes
+        {
+            get
+            {
+                if (_Turnos.Ctx == null) return new();
+                lock (_Turnos.Ctx.DanosFlutuantes)
+                    return _Turnos.Ctx.DanosFlutuantes.ToList();
+            }
+        }
+
+        private List<RaioInvocacao> RaiosInvocacao
+        {
+            get
+            {
+                if (_Turnos.Ctx == null) return new();
+                lock (_Turnos.Ctx.RaiosInvocacao)
+                    return _Turnos.Ctx.RaiosInvocacao.ToList();
+            }
+        }
+
+        protected override void OnInitialized()
+        {
+            _Turnos.OnMudou += AtualizarArena;
+        }
+
+        private void AtualizarArena() => InvokeAsync(StateHasChanged);
+
+        public void Dispose()
+        {
+            _Turnos.OnMudou -= AtualizarArena;
+        }
 
         private int Rumo(InimigoEmCombate i)
             => i.Estado.Direcao == 0 ? 1 : i.Estado.Direcao;

@@ -43,9 +43,8 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                     var inimigoFrente = ctx.Inimigos.FirstOrDefault(i => i.Vivo && i.Estado.Posicao == posJog + olhar);
                     if (inimigoFrente != null)
                     {
-                        inimigoFrente.ReceberDano(atk.Dano);
+                        acertou |= AplicarDanoNoInimigo(ctx, inimigoFrente, atk.Dano);
                         alvosAtingidos.Add(inimigoFrente);
-                        acertou = true;
                     }
                 }
             }
@@ -77,10 +76,7 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                     };
 
                     if (atk.Dano > 0)
-                    {
-                        alvoTroca.ReceberDano(atk.Dano);
-                        acertou = true;
-                    }
+                        acertou |= AplicarDanoNoInimigo(ctx, alvoTroca, atk.Dano);
                 }
             }
             else if (nome.Equals("Espelho do lago", StringComparison.OrdinalIgnoreCase))
@@ -90,10 +86,7 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                 if (atk.Dano > 0)
                 {
                     foreach (var ini in vivos)
-                    {
-                        ini.ReceberDano(atk.Dano);
-                        acertou = true;
-                    }
+                        acertou |= AplicarDanoNoInimigo(ctx, ini, atk.Dano);
                 }
             }
             else if (nome.Equals("Amaldiçoar", StringComparison.OrdinalIgnoreCase))
@@ -118,10 +111,7 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                 {
                     alvosAtingidos.Add(alvoMaldicao);
                     if (atk.Dano > 0)
-                    {
-                        alvoMaldicao.ReceberDano(atk.Dano);
-                        acertou = true;
-                    }
+                        acertou |= AplicarDanoNoInimigo(ctx, alvoMaldicao, atk.Dano);
                 }
             }
             else if (nome.Equals("Raio", StringComparison.OrdinalIgnoreCase))
@@ -149,10 +139,7 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                 {
                     alvosAtingidos.Add(maisDistante);
                     if (atk.Dano > 0)
-                    {
-                        maisDistante.ReceberDano(atk.Dano);
-                        acertou = true;
-                    }
+                        acertou |= AplicarDanoNoInimigo(ctx, maisDistante, atk.Dano);
                 }
             }
             else
@@ -197,18 +184,16 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
                 {
                     if (primeiroInimigo != null)
                     {
-                        primeiroInimigo.ReceberDano(atk.Dano);
+                        acertou |= AplicarDanoNoInimigo(ctx, primeiroInimigo, atk.Dano);
                         alvosAtingidos.Add(primeiroInimigo);
-                        acertou = true;
                     }
                 }
                 else
                 {
                     foreach (var inimigo in ctx.Inimigos.Where(i => i.Vivo && tiles.Contains(i.Estado.Posicao)))
                     {
-                        inimigo.ReceberDano(atk.Dano);
+                        acertou |= AplicarDanoNoInimigo(ctx, inimigo, atk.Dano);
                         alvosAtingidos.Add(inimigo);
-                        acertou = true;
                     }
                 }
             }
@@ -285,11 +270,19 @@ public class ExecutarFilaAcao(List<CartaAtaque> todas) : IAcaoDeTurno
             ctx.Inimigos.RemoveAll(i => !i.Vivo);
             ctx.NotificarVisual?.Invoke();
 
-            if (ctx.Inimigos.Count == 0)
+            if (ctx.Jogador.ModoCombate && !ctx.IgnorarFimSemInimigos && ctx.Inimigos.Count == 0)
             {
                 await Task.Delay(200);
                 break;
             }
         }
+    }
+
+    private static bool AplicarDanoNoInimigo(BatalhaContexto ctx, InimigoEmCombate alvo, int dano)
+    {
+        int aplicado = alvo.ReceberDano(dano);
+        if (aplicado <= 0) return false;
+        ctx.RegistrarDanoFlutuante(alvo.Estado.Posicao, aplicado);
+        return true;
     }
 }

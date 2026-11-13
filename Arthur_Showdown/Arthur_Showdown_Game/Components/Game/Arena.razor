@@ -1,8 +1,8 @@
-<div class="battle-arena">
+<div class="battle-arena @(TremendoTela ? "arena-shake" : "")">
     @for (int i = 0; i < QuantidadeTiles; i++)
     {
         <Tile Indice="i"
-              IsEspecial="IsLobby && (i == 0 || i == 1 || i == 4)"
+              IsEspecial="IsLobby && (i == i+1)"
               IsPerigo="!IsLobby && Inimigos.Any(ini => ini.Vivo && ini.Telegrafando && ini.Estado.Posicao == i)"
               IsTremendo="i == TileTremendoId" />
     }
@@ -44,7 +44,25 @@
         </div>
     }
 
-    @if (!IsLobby && _Turnos.Ctx?.EfeitoVisual != null)
+    @foreach (var raio in RaiosInvocacao)
+    {
+        <div @key="raio.Id" class="raio-invocacao-slot" style="transform: translateX(calc(@raio.PosicaoTile * 11.2vw));">
+            <svg class="raio-invocacao-svg" viewBox="0 0 60 220" preserveAspectRatio="none">
+                <polyline class="raio-traco-borda" points="34,0 20,58 38,64 18,128 36,134 24,218" />
+                <polyline class="raio-traco-nucleo" points="34,0 20,58 38,64 18,128 36,134 24,218" />
+            </svg>
+            <div class="raio-impacto-chao"></div>
+        </div>
+    }
+
+    @foreach (var df in DanosFlutuantes)
+    {
+        <div @key="df.Id" class="dano-flutuante-slot" style="transform: translateX(calc(@df.PosicaoTile * 11.2vw));">
+            <span class="dano-flutuante-texto">-@df.Valor</span>
+        </div>
+    }
+
+    @if (_Turnos.Ctx?.EfeitoVisual != null)
     {
         var ef = _Turnos.Ctx.EfeitoVisual;
         @foreach (var tile in ef.TilesImpacto)

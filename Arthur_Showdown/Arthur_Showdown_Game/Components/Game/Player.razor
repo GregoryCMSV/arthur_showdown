@@ -3,7 +3,7 @@
 {
     var ch = CurrentCharacter()!;
     <div class="personagem-base" style="transform: translateX(calc(@ch.PosicaoPersonagem * 11.2vw));">
-        @if (ch.ModoCombate && FilaJogador.Any())
+        @if (FilaJogador.Any())
         {
             <div class="fila-vertical">
                 @foreach (var c in FilaJogador)
@@ -28,7 +28,7 @@
                 }
             </div>
         </div>
-        @if (ch.ModoCombate && _Turnos.Ctx?.EscudoAtivo == true)
+        @if (_Turnos.Ctx?.EscudoAtivo == true)
         {
             <div class="efeito-escudo-elipse"></div>
         }
