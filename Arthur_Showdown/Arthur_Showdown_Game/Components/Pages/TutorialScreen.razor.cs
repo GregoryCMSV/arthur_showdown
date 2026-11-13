@@ -686,9 +686,9 @@ public partial class TutorialScreen : ComponentBase, IDisposable
         }
         if (fila.Count >= 2)
         {
-            return "Ataques na fila podem ser reordenados a qualquer momento com ▲ / ▼ sem custo de turno! Agora encoste no Lanceiro e clique em Atacar (⚔) para finalizar o tutorial.";
+            return "Ataques na fila podem ser reordenados a qualquer momento com ▲ / ▼ sem custo de turno! Agora encoste no Lanceiro e clique em (⚔) para finalizar o tutorial.";
         }
-        return "Um Lanceiro apareceu na posição 4 e você recebeu Amaldiçoar! Ataques de borda vermelha têm Ação Rápida (não gastam turno na fila) e ataques com bolinha aplicam efeitos (Maldição dobra o próximo dano). Coloque Amaldiçoar e a Espada na fila e reordene com ▲ / ▼ sem gastar turno!";
+        return "Um Lanceiro Inimigo apareceu, você aprendeu o Ataque Amaldiçoar! Ataques de borda vermelha têm Ação Rápida (não gastam turno na fila) e ataques com bolinha aplicam efeitos (Maldição dobra o próximo dano). Coloque Amaldiçoar e a Espada na fila e reordene com ▲ / ▼ sem gastar turno!";
     }
 
     private void AoMover(int dir)
