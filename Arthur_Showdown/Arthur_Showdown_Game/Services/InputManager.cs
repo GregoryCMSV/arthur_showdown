@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Storage;
 using System;
+using System.Globalization;
 
 namespace Arthur_Showdown_Game.Services
 {
@@ -13,14 +14,22 @@ namespace Arthur_Showdown_Game.Services
         public event Action? AoSolicitarEsperar;
         public event Action? OnConfigMudou;
 
+        public bool EhDispositivoMobile { get; }
         public bool MostrarControlesNaTela { get; private set; }
+        public double EscalaHud { get; private set; } = 1.0;
+        public int EscalaHudPorcentagem => (int)Math.Round(EscalaHud * 100);
+        public string EscalaHudCss => EscalaHud.ToString("0.00", CultureInfo.InvariantCulture);
+
+        private string ChaveEscalaHud => EhDispositivoMobile ? "escala_hud_mobile" : "escala_hud_pc";
 
         public InputManager()
         {
-            bool padrao = DeviceInfo.Current.Platform == DevicePlatform.Android
-                       || DeviceInfo.Current.Platform == DevicePlatform.iOS
-                       || true; // habilitado inicialmente para teste no PC
+            EhDispositivoMobile = DeviceInfo.Current.Platform == DevicePlatform.Android
+                               || DeviceInfo.Current.Platform == DevicePlatform.iOS;
+            bool padrao = EhDispositivoMobile || true; // habilitado inicialmente para teste no PC
             MostrarControlesNaTela = Preferences.Default.Get("mostrar_controles_tela", padrao);
+            double escalaPadrao = EhDispositivoMobile ? 0.65 : 1.0;
+            EscalaHud = Math.Clamp(Preferences.Default.Get(ChaveEscalaHud, escalaPadrao), 0.4, 1.5);
         }
 
         public void DefinirMostrarControlesNaTela(bool mostrar)
@@ -31,6 +40,16 @@ namespace Arthur_Showdown_Game.Services
         }
 
         public void AlternarControlesNaTela() => DefinirMostrarControlesNaTela(!MostrarControlesNaTela);
+
+        public void DefinirEscalaHud(double escala)
+        {
+            EscalaHud = Math.Clamp(Math.Round(escala, 2), 0.4, 1.5);
+            Preferences.Default.Set(ChaveEscalaHud, EscalaHud);
+            OnConfigMudou?.Invoke();
+        }
+
+        public void AumentarHud() => DefinirEscalaHud(EscalaHud + 0.1);
+        public void DiminuirHud() => DefinirEscalaHud(EscalaHud - 0.1);
 
         public void MoverEsquerda() => AoSolicitarMovimento?.Invoke(-1);
         public void MoverDireita() => AoSolicitarMovimento?.Invoke(1);

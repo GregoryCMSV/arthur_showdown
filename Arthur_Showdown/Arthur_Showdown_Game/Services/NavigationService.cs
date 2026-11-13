@@ -27,6 +27,11 @@ namespace Arthur_Showdown_Game.Services
             NavigateTo("/lobby");
         }
 
+        public void GoToTutorial()
+        {
+            NavigateTo("/tutorial");
+        }
+
         public void GoToGame(string gameId)
         {
             NavigateTo($"/combat/{gameId}");

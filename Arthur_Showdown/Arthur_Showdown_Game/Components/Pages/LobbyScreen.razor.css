@@ -16,3 +16,9 @@
     transform: translateX(-50%); 
     z-index: 30;
 }
+
+@media (max-height: 540px) {
+    .hud-bottom {
+        bottom: 6px;
+    }
+}

@@ -17,6 +17,11 @@
     z-index: 30;
 }
 
+@media (max-height: 540px) {
+    .hud-bottom {
+        bottom: 6px;
+    }
+}
 
 .recompensa-overlay {
     position: absolute;
@@ -55,3 +60,20 @@
     .recompensa-card:hover {
         transform: scale(1.08);
     }
+
+@media (max-height: 540px) {
+    .recompensa-overlay {
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .recompensa-opcoes {
+        gap: 12px;
+    }
+
+    .recompensa-card {
+        padding: 8px;
+        gap: 4px;
+        transform: scale(0.82);
+    }
+}

@@ -72,12 +72,34 @@
 
 .inimigo-vida {
     position: absolute;
-    bottom: -1.6vw;
+    bottom: -1.8vw;
     width: 100%;
     text-align: center;
-    font-size: 1vw;
-    color: white;
-    text-shadow: 1px 1px 0 #000;
+    font-size: 1.25vw;
+    font-weight: bold;
+    color: #ffccd5;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.inimigo-ordem-badge {
+    position: absolute;
+    top: 4px;
+    right: -6px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
+    border-radius: 13px;
+    background-color: rgba(34, 34, 59, 0.92);
+    border: 2px solid #ffd166;
+    color: #ffd166;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+    z-index: 28;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 
@@ -191,6 +213,171 @@
     }
     100% {
         transform: translateX(var(--dest));
+        opacity: 0;
+    }
+}
+
+.battle-arena.arena-shake {
+    animation: arena-tremor 0.28s ease-in-out;
+}
+
+@keyframes arena-tremor {
+    0%, 100% {
+        transform: translate(0, 0);
+    }
+    15% {
+        transform: translate(-10px, -6px);
+    }
+    30% {
+        transform: translate(10px, 6px);
+    }
+    45% {
+        transform: translate(-8px, 5px);
+    }
+    60% {
+        transform: translate(8px, -5px);
+    }
+    75% {
+        transform: translate(-4px, 3px);
+    }
+}
+
+.dano-flutuante-slot {
+    position: absolute;
+    bottom: calc(25px + 6vw);
+    left: 0;
+    width: 8vw;
+    margin-left: 1vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 38;
+}
+
+.dano-flutuante-texto {
+    font-size: clamp(22px, 2.8vw, 38px);
+    font-weight: bold;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #ff4d6d;
+    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    animation: subir-dano 0.75s ease-out forwards;
+}
+
+@keyframes subir-dano {
+    0% {
+        transform: translateY(0) scale(0.85);
+        opacity: 1;
+    }
+    20% {
+        transform: translateY(-10px) scale(1.18);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-48px) scale(1);
+        opacity: 0;
+    }
+}
+
+.inimigo-base {
+    animation: surgir-inimigo 0.44s ease-out;
+}
+
+@keyframes surgir-inimigo {
+    0% {
+        opacity: 0;
+        filter: brightness(2.8);
+    }
+    45% {
+        opacity: 0.92;
+        filter: brightness(2);
+    }
+    100% {
+        opacity: 1;
+        filter: brightness(1);
+    }
+}
+
+.raio-invocacao-slot {
+    position: absolute;
+    bottom: 22px;
+    left: 0;
+    width: 10vw;
+    height: 62vh;
+    pointer-events: none;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.raio-invocacao-svg {
+    width: 5.5vw;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 0 10px #72efdd) drop-shadow(0 0 18px #ffd166);
+    animation: raio-cair 0.48s ease-out forwards;
+}
+
+.raio-traco-borda {
+    fill: none;
+    stroke: #72efdd;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.raio-traco-nucleo {
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.raio-impacto-chao {
+    position: absolute;
+    bottom: -6px;
+    width: 9vw;
+    height: 2.6vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(114, 239, 221, 0.8) 45%, transparent 75%);
+    animation: raio-clarao 0.48s ease-out forwards;
+}
+
+@keyframes raio-cair {
+    0% {
+        clip-path: inset(0 0 100% 0);
+        opacity: 0.95;
+    }
+    32% {
+        clip-path: inset(0 0 0% 0);
+        opacity: 1;
+    }
+    52% {
+        opacity: 0.45;
+    }
+    68% {
+        opacity: 1;
+    }
+    100% {
+        clip-path: inset(30% 0 0 0);
+        opacity: 0;
+    }
+}
+
+@keyframes raio-clarao {
+    0% {
+        transform: scale(0.2);
+        opacity: 0;
+    }
+    30% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.55);
         opacity: 0;
     }
 }

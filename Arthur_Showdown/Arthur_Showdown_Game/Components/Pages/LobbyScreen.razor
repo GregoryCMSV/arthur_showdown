@@ -6,15 +6,18 @@
         <div class="gameplay-container" tabindex="0" @ref="GameplayContainer" autofocus>
             <Arena IsLobby=@true
                    QuantidadeTiles="5"
-                   TileTremendoId="TileTremendoId"
                    />
         </div>
     </GameLayer>
 
     <UILayer>
+        <div class="hud-top-left" style="transform: scale(@_Controle.EscalaHudCss);">
+            <button type="button" class="hud-nav-btn" @onclick="VoltarMenuInicial">⬅ Menu Inicial</button>
+        </div>
+
         <MapButton OnStartClicked="AbrirMapa" />
 
-        <div class="hud-bottom">
+        <div class="hud-bottom" style="transform: translateX(-50%) scale(@_Controle.EscalaHudCss); transform-origin: bottom center;">
             @if (_PlayerService.CurrentCharacter != null)
             {
                 <AtaquesContainer/>

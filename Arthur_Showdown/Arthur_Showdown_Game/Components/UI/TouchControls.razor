@@ -1,44 +1,127 @@
 @using Arthur_Showdown_Game.Services
 @implements IDisposable
 @inject InputManager Controle
+@inject TurnManager Turnos
 
-@if (Controle.MostrarControlesNaTela)
+@if (ForcarExibicao || Controle.MostrarControlesNaTela)
 {
-    <div class="touch-controls-layer" @onclick:stopPropagation="true">
-        <div class="touch-left">
-            <button type="button" class="touch-btn" title="Mover Esquerda (A)" @onclick="Controle.MoverEsquerda" tabindex="-1">
-                <span class="touch-icon">◀</span>
-                <span class="touch-label">Esq</span>
-            </button>
-            <button type="button" class="touch-btn" title="Mover Direita (D)" @onclick="Controle.MoverDireita" tabindex="-1">
-                <span class="touch-icon">▶</span>
-                <span class="touch-label">Dir</span>
-            </button>
-        </div>
+    bool temFila = Turnos.Cartas.Any(c => c.EmFila);
+    bool atqDesabilitado = BloquearAtacar || !temFila;
 
-        <div class="touch-right-triangle">
-            <button type="button" class="touch-btn tri-top" title="Virar (W)" @onclick="Controle.TrocarDirecao" tabindex="-1">
-                <span class="touch-icon">↻</span>
-                <span class="touch-label">Virar</span>
-            </button>
-            <div class="tri-bottom-row">
-                <button type="button" class="touch-btn tri-left" title="Aguardar Turno (S)" @onclick="Controle.Esperar" tabindex="-1">
-                    <span class="touch-icon">⏳</span>
-                    <span class="touch-label">Esperar</span>
+    <div class="touch-controls-layer" @onclick:stopPropagation="true">
+        @if (MostrarMovimento)
+        {
+            <div class="touch-left" style="transform: scale(@Controle.EscalaHudCss); transform-origin: bottom left;">
+                <button type="button"
+                        class="touch-btn @(BloquearEsquerda ? "bloqueado" : "") @(EhDestaque("esquerda") || EhDestaque("mover") ? "destaque" : "")"
+                        disabled="@BloquearEsquerda"
+                        title="Mover Esquerda (A)"
+                        @onclick="ClicarEsquerda"
+                        tabindex="-1">
+                    <span class="touch-icon">◀</span>
                 </button>
-                <button type="button" class="touch-btn tri-right touch-action" title="Executar Fila (Espaço)" @onclick="Controle.Interagir" tabindex="-1">
-                    <span class="touch-icon">⚔</span>
-                    <span class="touch-label">Atacar</span>
+                <button type="button"
+                        class="touch-btn @(BloquearDireita ? "bloqueado" : "") @(EhDestaque("direita") || EhDestaque("mover") ? "destaque" : "")"
+                        disabled="@BloquearDireita"
+                        title="Mover Direita (D)"
+                        @onclick="ClicarDireita"
+                        tabindex="-1">
+                    <span class="touch-icon">▶</span>
                 </button>
             </div>
-        </div>
+        }
+
+        @if (MostrarVirar || MostrarEsperar || MostrarAtacar)
+        {
+            <div class="touch-right-triangle" style="transform: scale(@Controle.EscalaHudCss); transform-origin: bottom right;">
+                @if (MostrarVirar)
+                {
+                    <button type="button"
+                            class="touch-btn tri-top @(BloquearVirar ? "bloqueado" : "") @(EhDestaque("virar") ? "destaque" : "")"
+                            disabled="@BloquearVirar"
+                            title="Virar (W)"
+                            @onclick="ClicarVirar"
+                            tabindex="-1">
+                        <span class="touch-icon">↻</span>
+                    </button>
+                }
+                @if (MostrarEsperar || MostrarAtacar)
+                {
+                    <div class="tri-bottom-row">
+                        @if (MostrarEsperar)
+                        {
+                            <button type="button"
+                                    class="touch-btn tri-left @(BloquearEsperar ? "bloqueado" : "") @(EhDestaque("esperar") ? "destaque" : "")"
+                                    disabled="@BloquearEsperar"
+                                    title="Aguardar Turno (S)"
+                                    @onclick="ClicarEsperar"
+                                    tabindex="-1">
+                                <span class="touch-icon">⏳</span>
+                            </button>
+                        }
+                        @if (MostrarAtacar)
+                        {
+                            <button type="button"
+                                    class="touch-btn tri-right touch-action @(atqDesabilitado ? "bloqueado" : "") @(EhDestaque("atacar") ? "destaque" : "")"
+                                    disabled="@atqDesabilitado"
+                                    title="Executar Fila (Espaço)"
+                                    @onclick="ClicarAtacar"
+                                    tabindex="-1">
+                                <span class="touch-icon">⚔</span>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        }
     </div>
 }
 
 @code {
+    [Parameter] public bool ForcarExibicao { get; set; }
+    [Parameter] public bool MostrarMovimento { get; set; } = true;
+    [Parameter] public bool MostrarVirar { get; set; } = true;
+    [Parameter] public bool MostrarEsperar { get; set; } = true;
+    [Parameter] public bool MostrarAtacar { get; set; } = true;
+    [Parameter] public bool BloquearEsquerda { get; set; }
+    [Parameter] public bool BloquearDireita { get; set; }
+    [Parameter] public bool BloquearVirar { get; set; }
+    [Parameter] public bool BloquearEsperar { get; set; }
+    [Parameter] public bool BloquearAtacar { get; set; }
+    [Parameter] public string? DestacarBotao { get; set; }
+
     protected override void OnInitialized()
     {
         Controle.OnConfigMudou += Atualizar;
+        Turnos.OnMudou += Atualizar;
+    }
+
+    private bool EhDestaque(string chave)
+        => string.Equals(DestacarBotao, chave, StringComparison.OrdinalIgnoreCase);
+
+    private void ClicarEsquerda()
+    {
+        if (!BloquearEsquerda) Controle.MoverEsquerda();
+    }
+
+    private void ClicarDireita()
+    {
+        if (!BloquearDireita) Controle.MoverDireita();
+    }
+
+    private void ClicarVirar()
+    {
+        if (!BloquearVirar) Controle.TrocarDirecao();
+    }
+
+    private void ClicarEsperar()
+    {
+        if (!BloquearEsperar) Controle.Esperar();
+    }
+
+    private void ClicarAtacar()
+    {
+        if (!BloquearAtacar && Turnos.Cartas.Any(c => c.EmFila)) Controle.Interagir();
     }
 
     private void Atualizar() => InvokeAsync(StateHasChanged);
@@ -46,5 +129,6 @@
     public void Dispose()
     {
         Controle.OnConfigMudou -= Atualizar;
+        Turnos.OnMudou -= Atualizar;
     }
 }

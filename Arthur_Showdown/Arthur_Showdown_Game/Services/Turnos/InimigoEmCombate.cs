@@ -47,6 +47,12 @@ public class InimigoEmCombate
         set => Estado.EfeitoEspelhoAtivo = value;
     }
 
+    public DecisaoInimigo? IntencaoPlanejada { get; set; }
+    public int DirecaoIntencao { get; set; } = 1;
+    public int OrdemTurno { get; set; } = 1;
+    public int? UltimoDanoRecebido { get; set; }
+    public int DanoRecebidoId { get; set; }
+
     private InimigoAcaoDto? AcaoAtacar => Fila.FirstOrDefault(a => a.Tipo == "Atacar");
 
     public List<AtaqueDto> AtaquesNaFila => Fila
@@ -97,12 +103,15 @@ public class InimigoEmCombate
         if (Fila.Count > 0) Estado.CursorAcao = (Estado.CursorAcao + 1) % Fila.Count;
     }
 
-    public void ReceberDano(int d)
+    public int ReceberDano(int d)
     {
-        if (d <= 0) return;
+        if (d <= 0) return 0;
         int danoFinal = Estado.Amaldicoado ? d * 2 : d;
         if (Estado.Amaldicoado)
             Estado.Amaldicoado = false;
+        UltimoDanoRecebido = danoFinal;
+        DanoRecebidoId++;
         Estado.VidaAtual = Math.Max(0, Estado.VidaAtual - danoFinal);
+        return danoFinal;
     }
 }

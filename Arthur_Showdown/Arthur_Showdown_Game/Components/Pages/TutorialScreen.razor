@@ -1,0 +1,82 @@
+@page "/tutorial"
+@using Arthur_Showdown_Game.Services
+
+<Scene ImagemUrl="@_backgroundUrl">
+
+    <GameLayer>
+        <div class="gameplay-container" tabindex="0" autofocus style="outline: none;">
+            @if (_pronto)
+            {
+                <Arena IsLobby=@false
+                       QuantidadeTiles="Turnos.Ctx.TilesTotal"
+                       PlayerStartPosition="_posInicial"
+                       Inimigos="Turnos.Ctx.Inimigos"
+                       MostrarOrdemInimigos="false" />
+            }
+        </div>
+    </GameLayer>
+
+    <UILayer>
+        <div class="hud-top-left" style="transform: scale(@Input.EscalaHudCss);">
+            <button type="button" class="hud-nav-btn" @onclick="VoltarMenuInicial">⬅ Menu Inicial</button>
+        </div>
+
+        @if (_pronto)
+        {
+            <div class="tutorial-top-vida" style="transform: translateX(-50%) scale(@Input.EscalaHudCss);">
+                <div class="tutorial-vida-badge @(EtapaAtual == EtapaTutorial.IntroVida ? "tutorial-vida-destaque" : "")">
+                    <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">
+                        ❤ @Turnos.Ctx.VidaAtual / @_vidaMax
+                    </Label>
+                </div>
+            </div>
+
+            @if (EtapaAtual != EtapaTutorial.Concluido)
+            {
+                <div class="tutorial-painel" @onclick:stopPropagation="true" style="transform: translateX(-50%) scale(@Input.EscalaHudCss);">
+                    <div class="tutorial-titulo-etapa">@TituloEtapa</div>
+                    <p class="tutorial-texto">@MensagemEtapa</p>
+                    @if (EtapaAtual is EtapaTutorial.IntroVida or EtapaTutorial.ExplicarTurnos)
+                    {
+                        <button type="button" class="tutorial-btn-continuar" @onclick="AvancarEtapaInformativa">Continuar ➡</button>
+                    }
+                </div>
+            }
+
+            @if (MostrarBarraAtaques)
+            {
+                <div class="hud-bottom @(BloquearAtaques ? "ataques-bloqueado" : "") @(DestacarBarraAtaques ? "ataques-destaque" : "")"
+                     style="transform: translateX(-50%) scale(@Input.EscalaHudCss); transform-origin: bottom center;">
+                    <AtaquesContainer />
+                </div>
+            }
+
+            <TouchControls ForcarExibicao="true"
+                           MostrarMovimento="MostrarBotaoMovimento"
+                           MostrarVirar="MostrarBotoesAcao"
+                           MostrarEsperar="MostrarBotoesAcao"
+                           MostrarAtacar="MostrarBotoesAcao"
+                           BloquearEsquerda="@(!PodeMover(-1))"
+                           BloquearDireita="@(!PodeMover(1))"
+                           BloquearVirar="@(!PodeVirar())"
+                           BloquearEsperar="@(!PodeEsperar())"
+                           BloquearAtacar="@(!PodeAtacar())"
+                           DestacarBotao="@BotaoDestacado" />
+        }
+
+        @if (_pronto && EtapaAtual == EtapaTutorial.Concluido)
+        {
+            <div class="tutorial-fim-overlay" @onclick:stopPropagation="true">
+                <Label Tamanho="44px" Cor="#ffd166" Sombra="2px 2px 0px #000">Tutorial Concluído!</Label>
+                <p class="tutorial-fim-subtexto">
+                    Você aprendeu a se movimentar, economizar turnos, montar e reordenar a fila de ataques, usar efeitos e ações rápidas, ler alertas em vermelho, virar e recuperar cooldowns esperando turnos.
+                </p>
+                <div class="tutorial-fim-botoes">
+                    <button type="button" class="tutorial-fim-btn" @onclick="IrParaLobby">Ir para o Lobby</button>
+                    <button type="button" class="tutorial-fim-btn tutorial-fim-sec" @onclick="VoltarMenuInicial">Menu Inicial</button>
+                </div>
+            </div>
+        }
+    </UILayer>
+
+</Scene>

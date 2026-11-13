@@ -42,6 +42,7 @@ namespace Arthur_Showdown_Game.Components.Pages
         private CancellationTokenSource? _ctsTimer;
 
         private bool _escolhendoMelhoria;
+        private bool _mostrarOrdemInimigos;
         private bool _processandoFimTurno;
         private TipoMelhoriaAtaque _melhoriaSorteada = TipoMelhoriaAtaque.MaisUmDano;
         private bool _escolhendoNovoAtaque;
@@ -734,7 +735,12 @@ namespace Arthur_Showdown_Game.Components.Pages
             };
         }
 
-        private void VoltarLobby()
+        private void AlternarOrdemInimigos()
+        {
+            _mostrarOrdemInimigos = !_mostrarOrdemInimigos;
+        }
+
+        private void LimparEstadoLocalCombate()
         {
             foreach (var c in Turnos.Cartas)
             {
@@ -746,7 +752,18 @@ namespace Arthur_Showdown_Game.Components.Pages
                 _PlayerService.CurrentCharacter.ModoCombate = false;
                 _PlayerService.CurrentCharacter.LimiteMapa = 5;
             }
+        }
+
+        private void VoltarLobby()
+        {
+            LimparEstadoLocalCombate();
             NavService.GoToLobby();
+        }
+
+        private void VoltarMenuInicial()
+        {
+            LimparEstadoLocalCombate();
+            NavService.GoToHome();
         }
 
         public void Dispose()

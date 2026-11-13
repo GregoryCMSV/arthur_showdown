@@ -17,6 +17,7 @@ public partial class LobbyScreen : ComponentBase, IDisposable
     [Inject] public LoadingService _LoadingService { get; set; } = default!;
     [Inject] public TurnManager _Turnos { get; set; } = default!;
     [Inject] public SoundService _Som { get; set; } = default!;
+    [Inject] public NavigationService NavService { get; set; } = default!;
 
     private ModalAberto JanelaAberta = ModalAberto.Nenhum;
 
@@ -36,10 +37,16 @@ public partial class LobbyScreen : ComponentBase, IDisposable
                 var iniciais = (_PlayerService.CurrentCharacter.GetAtaques() ?? new())
                     .Select(a => new CartaAtaque { Ataque = a })
                     .ToList();
-                _Turnos.ResetarParaLobby(iniciais);
+                _Turnos.ResetarParaLobby(
+                    iniciais,
+                    _PlayerService.CurrentCharacter,
+                    ehFlecha => _ = _Som.TocarHitAsync(ehFlecha),
+                    () => _ = _Som.TocarMovimentoAsync());
                 _PlayerService.CurrentCharacter.OnChange += StatusMudou;
             }
             _Controle.AoSolicitarMovimento += ProcessarMovimento;
+            _Controle.AoSolicitarInteracao += AoExecutarFilaLobby;
+            _Controle.AoSolicitarEsperar += AoEsperarLobby;
             _ = _Som.IniciarMusicaAsync();
         }
         finally
@@ -54,6 +61,11 @@ public partial class LobbyScreen : ComponentBase, IDisposable
         StateHasChanged();
     }
 
+    private void VoltarMenuInicial()
+    {
+        NavService.GoToHome();
+    }
+
     private void StatusMudou()
     {
         var charModel = _PlayerService.CurrentCharacter;
@@ -62,6 +74,7 @@ public partial class LobbyScreen : ComponentBase, IDisposable
         {
             JanelaAberta = ModalAberto.Nenhum;
             _ = _Som.TocarMovimentoAsync();
+            ReduzirCooldownsLobby();
         }
         else
         {
@@ -69,6 +82,33 @@ public partial class LobbyScreen : ComponentBase, IDisposable
         }
 
         InvokeAsync(StateHasChanged);
+    }
+
+    private void ReduzirCooldownsLobby()
+    {
+        bool alterou = false;
+        foreach (var c in _Turnos.Cartas)
+        {
+            if (c.CooldownRestante > 0)
+            {
+                c.CooldownRestante--;
+                alterou = true;
+            }
+        }
+        if (alterou)
+            _Turnos.NotificarMudanca();
+    }
+
+    private void AoExecutarFilaLobby()
+    {
+        if (JanelaAberta != ModalAberto.Nenhum) return;
+        _ = _Turnos.JogadorAgirAsync(new ExecutarFilaAcao(_Turnos.Cartas));
+    }
+
+    private void AoEsperarLobby()
+    {
+        if (JanelaAberta != ModalAberto.Nenhum) return;
+        _ = _Turnos.JogadorAgirAsync(new EsperarAcao());
     }
 
     private void ProcessarMovimento(int direcao)
@@ -90,10 +130,10 @@ public partial class LobbyScreen : ComponentBase, IDisposable
         switch (posicao)
         {
             case 0:
-                JanelaAberta = ModalAberto.Loja;
+               // JanelaAberta = ModalAberto.Loja;
                 break;
             case 1:
-                JanelaAberta = ModalAberto.Scoreboard;
+              //  JanelaAberta = ModalAberto.Scoreboard;
                 break;
             case 2:
                 TileTremendoId = posicao;
@@ -110,8 +150,22 @@ public partial class LobbyScreen : ComponentBase, IDisposable
     public void Dispose()
     {
         _Controle.AoSolicitarMovimento -= ProcessarMovimento;
+        _Controle.AoSolicitarInteracao -= AoExecutarFilaLobby;
+        _Controle.AoSolicitarEsperar -= AoEsperarLobby;
         if (_PlayerService.CurrentCharacter != null)
+        {
             _PlayerService.CurrentCharacter.OnChange -= StatusMudou;
+            if (!_PlayerService.CurrentCharacter.ModoCombate)
+            {
+                foreach (var c in _Turnos.Cartas)
+                {
+                    c.CooldownRestante = 0;
+                    c.PosicaoFila = null;
+                }
+                if (_Turnos.Ctx != null)
+                    _Turnos.Ctx.EscudoAtivo = false;
+            }
+        }
     }
 
     private async Task FecharModal()

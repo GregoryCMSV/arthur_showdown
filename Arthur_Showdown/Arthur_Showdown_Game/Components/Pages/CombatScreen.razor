@@ -12,13 +12,28 @@
                 <Arena IsLobby=@false
                        QuantidadeTiles="Turnos.Ctx.TilesTotal"
                        PlayerStartPosition="_posInicial"
-                       Inimigos="Turnos.Ctx.Inimigos" />
+                       Inimigos="Turnos.Ctx.Inimigos"
+                       MostrarOrdemInimigos="_mostrarOrdemInimigos" />
             }
         </div>
     </GameLayer>
 
     <UILayer>
-        <div style="position: absolute; top: 20px; width: 100%; text-align: center;">
+        <div class="hud-top-left" style="transform: scale(@Input.EscalaHudCss);">
+            <button type="button" class="hud-nav-btn" @onclick="VoltarLobby">⬅ Lobby</button>
+            <button type="button" class="hud-nav-btn" @onclick="VoltarMenuInicial">🏠 Menu Inicial</button>
+        </div>
+
+        <div class="hud-top-right" style="transform: scale(@Input.EscalaHudCss);">
+            <button type="button"
+                    class="hud-eye-btn @(_mostrarOrdemInimigos ? "ativo" : "")"
+                    title="Mostrar/ocultar ordem de ação dos inimigos"
+                    @onclick="AlternarOrdemInimigos">
+                👁
+            </button>
+        </div>
+
+        <div style="position: absolute; top: 20px; width: 100%; text-align: center; pointer-events: none; transform: scale(@Input.EscalaHudCss); transform-origin: top center;">
             @if (_erro != null)
             {
                 <Label Tamanho="24px" Cor="white" Sombra="2px 2px 0px #000">@_erro</Label>
@@ -72,7 +87,7 @@
 
         @if (_pronto)
         {
-            <div class="hud-bottom">
+            <div class="hud-bottom" style="transform: translateX(-50%) scale(@Input.EscalaHudCss); transform-origin: bottom center;">
                 <AtaquesContainer />
             </div>
             <TouchControls />
